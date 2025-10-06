@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "760579118951",
+    "project_id": "foodpluses2",
+    "storage_bucket": "foodpluses2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760579118951:android:ca5349f847318d58f8c1c2",
+        "android_client_info": {
+          "package_name": "com.foodpluses.delivery"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1KCczc-l4pNukaijguir6tXLB--WotXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760579118951:android:1f2a5d9986b772d7f8c1c2",
+        "android_client_info": {
+          "package_name": "com.foodpluses.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1KCczc-l4pNukaijguir6tXLB--WotXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760579118951:android:e283eba636c214baf8c1c2",
+        "android_client_info": {
+          "package_name": "com.foodpluses.vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1KCczc-l4pNukaijguir6tXLB--WotXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
