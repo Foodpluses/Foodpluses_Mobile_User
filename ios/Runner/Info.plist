@@ -10,6 +10,8 @@
 	<string>Foodpluses</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -48,8 +50,12 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires access to the camera to upload customer profile picture.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Your location helps us provide better delivery tracking and improve your service experience.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app uses your location to show nearby vendors and track deliveries in real-time.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location to manage coverage of restaurant and when add a new address.</string>
+	<string>This app requires your location to provide accurate delivery and nearby restaurant information.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>The application does not use this feature</string>
 	<key>NSPhotoLibraryUsageDescription</key>
