@@ -63,7 +63,7 @@ class CouponCardWidget extends StatelessWidget {
                 Text(
                   '${couponList![index].couponType == 'free_delivery' ? '' : couponList![index].discount}${couponList![index].discountType == 'percent' ? '%'
                       : couponList![index].couponType == 'free_delivery' ?  'free_delivery'.tr
-                      : Get.find<SplashController>().configModel!.currencySymbol} ${couponList![index].couponType == 'free_delivery' ? '' : 'off'.tr}',
+                      : 'NGN'} ${couponList![index].couponType == 'free_delivery' ? '' : 'off'.tr}',
                   style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge),
                 ),
                 const SizedBox(height: Dimensions.paddingSizeExtraSmall),

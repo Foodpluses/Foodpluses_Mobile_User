@@ -15,8 +15,6 @@ class DeliveryInstructionView extends StatefulWidget {
 }
 
 class _DeliveryInstructionViewState extends State<DeliveryInstructionView> {
-  // ExpansionTileController controller = ExpansionTileController();
-
   @override
   Widget build(BuildContext context) {
     bool isDesktop = ResponsiveHelper.isDesktop(context);
@@ -48,17 +46,30 @@ class _DeliveryInstructionViewState extends State<DeliveryInstructionView> {
             ]),
           ),
 
-
           GetBuilder<CheckoutController>(
             builder: (checkoutController) {
-              return checkoutController.selectedInstruction != -1 ? Row(children: [
-                Text(
-                  AppConstants.deliveryInstructionList[checkoutController.selectedInstruction].tr,
-                  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+              String displayText = '';
+              if (checkoutController.selectedInstruction != -1 && 
+                  checkoutController.selectedInstruction < AppConstants.deliveryInstructionList.length) {
+                displayText = AppConstants.deliveryInstructionList[checkoutController.selectedInstruction].tr;
+              } else if (checkoutController.deliveryInstructionController.text.trim().isNotEmpty) {
+                displayText = checkoutController.deliveryInstructionController.text.trim();
+              }
+              
+              return displayText.isNotEmpty ? Row(children: [
+                Expanded(
+                  child: Text(
+                    displayText,
+                    style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-
                 IconButton(
-                  onPressed: ()=> checkoutController.setInstruction(-1),
+                  onPressed: ()=> {
+                    checkoutController.setInstruction(-1),
+                    checkoutController.deliveryInstructionController.clear(),
+                  },
                   icon: const Icon(Icons.clear, size: 18),
                 )
               ]) : const SizedBox();

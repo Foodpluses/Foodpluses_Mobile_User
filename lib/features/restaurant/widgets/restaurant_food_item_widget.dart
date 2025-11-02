@@ -33,19 +33,28 @@ class RestaurantFoodItemWidget extends StatelessWidget {
     double price = product.price ?? 0;
     double discountPrice = PriceConverter.convertWithDiscount(price, discount, discountType) ?? price;
 
-    // Check if item should show closed overlay
-    bool shouldShowOverlay = _shouldShowClosedOverlay(product);
-    String closedText = _getClosedText(product);
+    // Check if item should hide add button
+    bool shouldHideAddButton = _shouldShowClosedOverlay(product);
 
-    return ClosedOverlayWidget(
-      isClosed: shouldShowOverlay,
-      closedText: closedText,
-      child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade100,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: CustomInkWellWidget(
         onTap: () {
@@ -59,186 +68,259 @@ class RestaurantFoodItemWidget extends StatelessWidget {
             showCustomSnackBar('item_is_not_available'.tr);
           }
         },
-        radius: 8,
+        radius: 12,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Food details - Left side
+              // Food details - Left side with enhanced styling
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Food name
-                    Text(
-                      product.name ?? 'Unknown Item',
-                      style: robotoMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    // Food name with accent
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 20,
+                          margin: const EdgeInsets.only(right: 8, top: 2),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            product.name ?? 'Unknown Item',
+                            style: robotoMedium.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     
                     // Description
-                    Text(
-                      product.description ?? '',
-                      style: robotoRegular.copyWith(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    // Price section
-                    Row(
-                      children: [
-                        if (discount! > 0) ...[
-                          Text(
-                            PriceConverter.convertPrice(product.price),
-                            style: robotoRegular.copyWith(
-                              fontSize: 13,
-                              color: Colors.grey.shade500,
-                              decoration: TextDecoration.lineThrough,
-                            ),
+                    if (product.description != null && product.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 11),
+                        child: Text(
+                          product.description ?? '',
+                          style: robotoRegular.copyWith(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            height: 1.3,
                           ),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          PriceConverter.convertPrice(product.price, discount: discount, discountType: discountType),
-                          style: robotoMedium.copyWith(
-                            fontSize: 15,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w600, 
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (product.description != null && product.description!.isNotEmpty)
+                      const SizedBox(height: 8),
+                    
+                    // Price section with enhanced styling
+                    Padding(
+                      padding: const EdgeInsets.only(left: 11),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Theme.of(context).primaryColor.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (discount! > 0) ...[
+                              Text(
+                                PriceConverter.convertPrice(product.price),
+                                style: robotoRegular.copyWith(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Icon(
+                              Icons.local_offer,
+                              size: 14,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              PriceConverter.convertPrice(product.price, discount: discount, discountType: discountType),
+                              style: robotoMedium.copyWith(
+                                fontSize: 15,
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w700, 
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
               
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               
               // Image and Add button - Right side (grouped together)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    // Food image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+              Column(
+                children: [
+                  // Food image container
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
                       child: CustomImageWidget(
                         image: product.imageFullUrl ?? '',
-                        height: 80,
-                        width: 80,
+                        height: 100,
+                        width: 100,
                         fit: BoxFit.cover,
                         isFood: true,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    
-                    // Add button
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Add button - hide when restaurant is closed, same width as image
+                  if (!shouldHideAddButton)
                     GetBuilder<CartController>(
                       builder: (cartController) {
                         int cartQty = cartController.cartQuantity(product.id ?? 0);
                         int cartIndex = cartController.isExistInCart(product.id, null);
                         
-                        return cartQty != 0 ? Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: cartController.isLoading ? null : () {
-                                  if (cartController.cartList[cartIndex].quantity! > 1) {
-                                    cartController.setQuantity(false, cartController.cartList[cartIndex], cartIndex: cartIndex);
-                                  } else {
-                                    cartController.removeFromCart(cartIndex);
-                                  }
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  padding: const EdgeInsets.all(6),
-                                  child: Icon(
-                                    Icons.remove,
-                                    size: 14,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: Text(
-                                  cartQty.toString(),
-                                  style: robotoMedium.copyWith(
-                                    fontSize: 12,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: cartController.isLoading ? null : () {
-                                  cartController.setQuantity(true, cartController.cartList[cartIndex], cartIndex: cartIndex);
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  padding: const EdgeInsets.all(6),
-                                  child: Icon(
-                                    Icons.add,
-                                    size: 14,
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ) : InkWell(
-                          onTap: () => Get.find<ProductController>().productDirectlyAddToCart(product, context),
+                        return cartQty != 0 ? SizedBox(
+                          width: 100,
                           child: Container(
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                  spreadRadius: 0,
+                                ),
+                              ],
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Text(
-                              'Add +',
-                              style: robotoMedium.copyWith(
-                                fontSize: 12,
-                                color: Colors.white,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                InkWell(
+                                  onTap: cartController.isLoading ? null : () {
+                                    if (cartController.cartList[cartIndex].quantity! > 1) {
+                                      cartController.setQuantity(false, cartController.cartList[cartIndex], cartIndex: cartIndex);
+                                    } else {
+                                      cartController.removeFromCart(cartIndex);
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Icon(
+                                      Icons.remove,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  cartQty.toString(),
+                                  style: robotoMedium.copyWith(
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: cartController.isLoading ? null : () {
+                                    cartController.setQuantity(true, cartController.cartList[cartIndex], cartIndex: cartIndex);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Icon(
+                                      Icons.add,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ) : SizedBox(
+                          width: 100,
+                          child: InkWell(
+                            onTap: () => Get.find<ProductController>().productDirectlyAddToCart(product, context),
+                            child: Container(
+                              width: 100,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              child: Center(
+                                child: Text(
+                                  'Add',
+                                  style: robotoMedium.copyWith(
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         );
                       }
                     ),
-                  ],
-                ),
+                ],
               ),
             ],
           ),
         ),
       ),
-    ),
     );
   }
 

@@ -14,6 +14,7 @@ import 'package:stackfood_multivendor/features/home/widgets/all_restaurant_filte
 import 'package:stackfood_multivendor/features/home/widgets/all_restaurants_widget.dart';
 import 'package:stackfood_multivendor/features/home/widgets/bad_weather_widget.dart';
 import 'package:stackfood_multivendor/features/home/widgets/banner_view_widget.dart';
+import 'package:stackfood_multivendor/features/home/widgets/top_banner_view_widget.dart';
 import 'package:stackfood_multivendor/features/home/widgets/best_review_item_view_widget.dart';
 import 'package:stackfood_multivendor/features/home/widgets/cuisine_view_widget.dart';
 import 'package:stackfood_multivendor/features/home/widgets/enjoy_off_banner_view_widget.dart';
@@ -357,7 +358,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: Dimensions.webMaxWidth,
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const BadWeatherWidget(),
-                        // Popular Restaurants moved up for better order-oriented navigation
+                        // Top Banner - Auto-slide banner at the top
+                        const TopBannerViewWidget(),
+                        // What's on your mind section - moved under banner, cleaner design
+                        const WhatOnYourMindViewWidget(),
+                        // Popular Restaurants - cleaner, smaller cards
                         _configModel?.popularRestaurant == 1 ? const PopularRestaurantsViewWidget() : const SizedBox(),
                       ]),
                     )),
@@ -367,8 +372,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Center(child: SizedBox(
                       width: Dimensions.webMaxWidth,
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        // Original banner slider (keeping it as requested)
                         const BannerViewWidget(),
-                        const WhatOnYourMindViewWidget(),
                         _isLogin ? const OrderAgainViewWidget() : const SizedBox(),
                         const TodayTrendsViewWidget(),
                         // All Restaurants section moved back to original position

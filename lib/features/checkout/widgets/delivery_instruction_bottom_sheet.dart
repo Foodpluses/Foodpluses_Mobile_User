@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stackfood_multivendor/common/widgets/custom_button_widget.dart';
+import 'package:stackfood_multivendor/common/widgets/custom_text_field_widget.dart';
 import 'package:stackfood_multivendor/features/checkout/controllers/checkout_controller.dart';
 import 'package:stackfood_multivendor/helper/responsive_helper.dart';
 import 'package:stackfood_multivendor/util/app_constants.dart';
@@ -16,6 +17,36 @@ class DeliveryInstructionBottomSheet extends StatefulWidget {
 
 class _DeliveryInstructionBottomSheetState extends State<DeliveryInstructionBottomSheet> {
   int selectIndex = -1;
+  final TextEditingController customTextController = TextEditingController();
+  bool useCustomText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load existing selection if any
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      CheckoutController checkoutController = Get.find<CheckoutController>();
+      if (checkoutController.selectedInstruction != -1 && 
+          checkoutController.selectedInstruction < AppConstants.deliveryInstructionList.length) {
+        setState(() {
+          selectIndex = checkoutController.selectedInstruction;
+          useCustomText = false;
+        });
+      } else if (checkoutController.deliveryInstructionController.text.trim().isNotEmpty) {
+        setState(() {
+          customTextController.text = checkoutController.deliveryInstructionController.text.trim();
+          useCustomText = true;
+          selectIndex = -1;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    customTextController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +75,19 @@ class _DeliveryInstructionBottomSheetState extends State<DeliveryInstructionBott
             )
           ]),
 
+          // Predefined options
           ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: AppConstants.deliveryInstructionList.length,
               itemBuilder: (context, index){
-                bool isSelected = selectIndex == index;
+                bool isSelected = selectIndex == index && !useCustomText;
                 return InkWell(
                   onTap: () {
                     setState(() {
                       selectIndex = index;
+                      useCustomText = false;
+                      customTextController.clear();
                     });
                   },
                   child: Container(
@@ -72,13 +106,70 @@ class _DeliveryInstructionBottomSheetState extends State<DeliveryInstructionBott
                 );
               }),
 
+          const SizedBox(height: Dimensions.paddingSizeSmall),
+          
+          // Divider
+          Container(
+            height: 1,
+            color: Theme.of(context).disabledColor.withValues(alpha: 0.3),
+          ),
+          
+          const SizedBox(height: Dimensions.paddingSizeDefault),
+          
+          // Custom text field option
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Or enter custom instruction:',
+                style: robotoMedium.copyWith(
+                  fontSize: Dimensions.fontSizeDefault,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
+              CustomTextFieldWidget(
+                controller: customTextController,
+                hintText: 'Enter your custom delivery instruction...',
+                showLabelText: false,
+                maxLines: 3,
+                inputType: TextInputType.multiline,
+                inputAction: TextInputAction.done,
+                capitalization: TextCapitalization.sentences,
+                onChanged: (value) {
+                  setState(() {
+                    if (value.trim().isNotEmpty) {
+                      useCustomText = true;
+                      selectIndex = -1;
+                    } else {
+                      useCustomText = false;
+                    }
+                  });
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: Dimensions.paddingSizeLarge),
+
           SafeArea(
             child: CustomButtonWidget(
               buttonText: 'apply'.tr,
-              onPressed: selectIndex == -1 ? null : (){
-                Get.find<CheckoutController>().setInstruction(selectIndex);
-                Get.back();
-              },
+              onPressed: (selectIndex == -1 && !useCustomText) || (useCustomText && customTextController.text.trim().isEmpty)
+                  ? null 
+                  : (){
+                    CheckoutController checkoutController = Get.find<CheckoutController>();
+                    if (useCustomText && customTextController.text.trim().isNotEmpty) {
+                      // Save custom text
+                      checkoutController.deliveryInstructionController.text = customTextController.text.trim();
+                      checkoutController.setInstruction(-1); // Reset predefined selection
+                    } else if (selectIndex != -1) {
+                      // Save predefined option
+                      checkoutController.setInstruction(selectIndex);
+                      checkoutController.deliveryInstructionController.clear(); // Clear custom text
+                    }
+                    Get.back();
+                  },
             ),
           ),
 

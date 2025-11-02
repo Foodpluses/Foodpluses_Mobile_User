@@ -37,6 +37,7 @@ import 'package:stackfood_multivendor/util/styles.dart';
 import 'package:stackfood_multivendor/features/address/domain/models/address_model.dart';
 import 'package:stackfood_multivendor/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:stackfood_multivendor/features/checkout/domain/models/place_order_body_model.dart' as place_order_model;
+import 'package:stackfood_multivendor/features/location/domain/models/zone_response_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CombinedCartCheckoutScreen extends StatefulWidget {
@@ -58,6 +59,7 @@ class CombinedCartCheckoutScreen extends StatefulWidget {
 class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen> {
   
   int _currentTabIndex = 0;
+  bool _firstOrderAutoApplied = false;
   
   // Payment and checkout related variables
   bool? _isCashOnDeliveryActive = false;
@@ -233,6 +235,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
           defaultAddress.longitude != null &&
           checkoutController.restaurant!.latitude != null &&
           checkoutController.restaurant!.longitude != null) {
+        // Debug: log origin & destination
+        print('📍 Distance inputs (guest):');
+        print('   Origin (guest address): ${defaultAddress.address}');
+        print('   Origin lat,lng: ${defaultAddress.latitude}, ${defaultAddress.longitude}');
+        print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+        print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
         checkoutController.getDistanceInKM(
           LatLng(double.parse(defaultAddress.latitude!), double.parse(defaultAddress.longitude!)),
           LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
@@ -286,6 +294,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
           defaultAddress.longitude != null &&
           checkoutController.restaurant!.latitude != null &&
           checkoutController.restaurant!.longitude != null) {
+        // Debug: log origin & destination
+        print('📍 Distance inputs (default):');
+        print('   Origin (default address): ${defaultAddress.address}');
+        print('   Origin lat,lng: ${defaultAddress.latitude}, ${defaultAddress.longitude}');
+        print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+        print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
         checkoutController.getDistanceInKM(
           LatLng(double.parse(defaultAddress.latitude!), double.parse(defaultAddress.longitude!)),
           LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
@@ -356,11 +370,31 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
               // Progress indicator with clickable labels
               _buildProgressIndicator(),
               
-              // Content based on current tab
+              // Content based on current tab with animation
               Expanded(
-                child: _currentTabIndex == 0 
-                  ? _buildYourOrderTab(cartController, restaurantController, isRestaurantOpen, isBusinessShutdown)
-                  : _buildDeliveryPaymentTab(cartController, restaurantController, isRestaurantOpen, isBusinessShutdown),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.05, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOut,
+                        )),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _currentTabIndex == 0 
+                    ? _buildYourOrderTab(cartController, restaurantController, isRestaurantOpen, isBusinessShutdown)
+                      : _buildDeliveryPaymentTab(cartController, restaurantController, isRestaurantOpen, isBusinessShutdown),
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
+                ),
               ),
             ],
           );
@@ -370,76 +404,133 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
   }
 
   Widget _buildProgressIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(
-        children: [
-          // Progress bar
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double padding = 2.0;
+        final double containerWidth = constraints.maxWidth;
+        
+        // Calculate widths based on flex proportions
+        const int flex1 = 42;
+        const int flex2 = 58;
+        const int totalFlex = flex1 + flex2;
+        
+        final double section1Width = (containerWidth * flex1) / totalFlex;
+        final double section2Width = containerWidth - section1Width;
+        
+        // Calculate indicator position and width
+        final double indicatorLeft = _currentTabIndex == 0
+            ? padding
+            : padding + section1Width;
+            
+        final double indicatorWidth = _currentTabIndex == 0
+            ? section1Width - (padding * 2)
+            : section2Width - (padding * 2);
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).primaryColor.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
             children: [
-              Expanded(
+              // Sliding indicator background
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                left: indicatorLeft,
+                top: padding,
+                bottom: padding,
+                width: indicatorWidth,
                 child: Container(
-                  height: 4,
                   decoration: BoxDecoration(
-                    color: _currentTabIndex >= 0 ? Colors.orange : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).primaryColor.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: _currentTabIndex >= 1 ? Colors.orange : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+              // Tab buttons
+              Row(
+                children: [
+                  Expanded(
+                    flex: flex1,
+                    child: _buildTabButton(
+                      title: 'Your Order',
+                      index: 0,
+                    ),
                   ),
-                ),
+                  Expanded(
+                    flex: flex2,
+                    child: _buildTabButton(
+                      title: 'Delivery & Payment',
+                      index: 1,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Clickable labels
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _currentTabIndex = 0;
-                  });
-                },
-                child: Text(
-                  'Your Order',
-                  style: robotoMedium.copyWith(
-                    fontSize: 14,
-                    color: _currentTabIndex >= 0 ? Colors.orange : Colors.grey.shade600,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _currentTabIndex = 1;
-                  });
-                },
-                child: Text(
-                  'Delivery & Payment',
-                  style: robotoMedium.copyWith(
-                    fontSize: 14,
-                    color: _currentTabIndex >= 1 ? Colors.orange : Colors.grey.shade600,
-                  ),
-                ),
-              ),
-            ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTabButton({
+    required String title,
+    required int index,
+  }) {
+    bool isActive = _currentTabIndex == index;
+    String displayText = title == 'Delivery & Payment' ? 'Delivery & Payment' : title;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentTabIndex = index;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        alignment: Alignment.center,
+        child: Text(
+          displayText,
+          textAlign: TextAlign.center,
+          maxLines: 1, 
+          overflow: TextOverflow.ellipsis,
+          style: robotoMedium.copyWith(
+            fontSize: 12,
+            color: isActive 
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).primaryColor.withOpacity(0.7),
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            height: 1.2,
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildYourOrderTab(CartController cartController, RestaurantController restaurantController, bool isRestaurantOpen, bool isBusinessShutdown) {
     return SingleChildScrollView(
+      key: const ValueKey('your_order_tab'),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,206 +679,245 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
 
   Widget _buildStylishCartItem(CartModel cart, int index, CartController cartController, bool isRestaurantOpen) {
     return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 0),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            spreadRadius: 0,
-            blurRadius: 8,
+            color: Colors.grey.shade100,
+            blurRadius: 4,
             offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Item header with image and basic info
-          Row(
-            children: [
-              // Item image
-              Container(
-                height: 60,
-                width: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.shade100,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: cart.product?.imageFullUrl != null
-                    ? Image.network(
-                        cart.product!.imageFullUrl!,
-                        height: 60,
-                        width: 60,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.fastfood,
-                            color: Colors.orange,
-                            size: 30,
-                          );
-                        },
-                      )
-                    : Icon(
-                        Icons.fastfood,
-                        color: Colors.orange,
-                        size: 30,
-                      ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              
-              // Item details
-              Expanded(
-                child: Column(
+          // Food details - Left side with enhanced styling
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Food name with accent
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      cart.product?.name ?? 'Item',
-                      style: robotoMedium.copyWith(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      cart.product?.restaurantName ?? 'Restaurant',
-                      style: robotoRegular.copyWith(
-                        fontSize: 12, 
-                        color: Theme.of(context).disabledColor, 
+                    Container(
+                      width: 3,
+                      height: 20,
+                      margin: const EdgeInsets.only(right: 8, top: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      PriceConverter.convertPrice(cart.price!),
-                      style: robotoMedium.copyWith(
-                        fontSize: 14,
-                        color: Colors.orange,
+                    Expanded(
+                      child: Text(
+                        cart.product?.name ?? 'Item',
+                        style: robotoMedium.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-              ),
-              
-              // Remove button
-              IconButton(
-                onPressed: cartController.isLoading ? null : () {
-                  cartController.removeFromCart(index);
-                },
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          
-          // Add-ons if any
-          if (cart.addOns != null && cart.addOns!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Add-ons:',
-                    style: robotoMedium.copyWith(
-                      fontSize: 12,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                const SizedBox(height: 4),
+                
+                // Add-ons if any
+                if (_hasAddOns(cart)) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(left: 11),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getAddOnsDisplayText(cart),
+                          style: robotoRegular.copyWith(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  ...cart.addOns!.map((addon) => Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      '• ${addon.name}',
-                      style: robotoRegular.copyWith(
-                        fontSize: 11,
-                        color: Theme.of(context).disabledColor,
+                  const SizedBox(height: 6),
+                ],
+                
+                // Price section with enhanced styling
+                Padding(
+                  padding: const EdgeInsets.only(left: 11),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
-                  )).toList(),
-                ],
-              ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.local_offer,
+                          size: 14,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          PriceConverter.convertPrice(_calculateItemTotal(cart)),
+                          style: robotoMedium.copyWith(
+                            fontSize: 15,
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w700, 
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
           
-          const SizedBox(height: 12),
+          const SizedBox(width: 12),
           
-          // Quantity controls and total price
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Image and controls - Right side
+          Column(
             children: [
+              // Food image container
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade200,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: cart.product?.imageFullUrl != null
+                    ? Image.network(
+                        cart.product!.imageFullUrl!,
+                        height: 80,
+                        width: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 80,
+                            width: 80,
+                            color: Colors.grey.shade200,
+                            child: Icon(
+                              Icons.fastfood,
+                              color: Colors.orange,
+                              size: 30,
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        height: 80,
+                        width: 80,
+                        color: Colors.grey.shade200,
+                        child: Icon(
+                          Icons.fastfood,
+                          color: Colors.orange,
+                          size: 30,
+                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              
               // Quantity controls
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Minus button
-                    IconButton(
-                      onPressed: cartController.isLoading ? null : () {
+                    InkWell(
+                      onTap: cartController.isLoading ? null : () {
                         if (cart.quantity! > 1) {
                           cartController.setQuantity(false, cart, cartIndex: index);
                         } else {
                           cartController.removeFromCart(index);
                         }
                       },
-                      icon: Icon(
-                        cart.quantity! == 1 ? Icons.delete_outline : Icons.remove,
-                        color: cart.quantity! == 1 ? Theme.of(context).colorScheme.error : Colors.orange,
-                        size: 18,
-                      ),
-                    ),
-                    
-                    // Quantity display
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Text(
-                        '${cart.quantity}',
-                        style: robotoMedium.copyWith(
-                          fontSize: 16,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          cart.quantity! == 1 ? Icons.delete_outline : Icons.remove,
+                          size: 16,
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
                     ),
-                    
-                    // Plus button
-                    IconButton(
-                      onPressed: cartController.isLoading ? null : () {
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        '${cart.quantity}',
+                        style: robotoMedium.copyWith(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: cartController.isLoading ? null : () {
                         cartController.setQuantity(true, cart, cartIndex: index);
                       },
-                      icon: Icon(
-                        Icons.add,
-                        color: Colors.orange,
-                        size: 18,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.add,
+                          size: 16,
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              
-              // Total price for this item
-              Text(
-                PriceConverter.convertPrice(cart.price! * cart.quantity!),
-                style: robotoBold.copyWith(
-                  fontSize: 16,
-                  color: Colors.orange,
                 ),
               ),
             ],
@@ -795,6 +925,325 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
         ],
       ),
     );
+  }
+
+  // Helper method to check if cart item has add-ons
+  bool _hasAddOns(CartModel cart) {
+    return (cart.addOns != null && cart.addOns!.isNotEmpty) || 
+           (cart.addOnIds != null && cart.addOnIds!.isNotEmpty);
+  }
+
+  // Helper method to get add-ons display text
+  String _getAddOnsDisplayText(CartModel cart) {
+    List<String> addOnNames = [];
+    
+    if (cart.addOnIds == null || cart.addOnIds!.isEmpty) {
+      return '';
+    }
+    
+    // Try to match by ID - more reliable than index matching
+    for (var addOnId in cart.addOnIds!) {
+      String? addOnName;
+      int? quantity = addOnId.quantity;
+      
+      // First try to find in cart.addOns by ID
+      if (cart.addOns != null && cart.addOns!.isNotEmpty) {
+        try {
+          var addOn = cart.addOns!.firstWhere(
+            (a) => a.id == addOnId.id,
+          );
+          addOnName = addOn.name;
+        } catch (e) {
+          // Not found in cart.addOns, continue to try product.addOns
+        }
+      }
+      
+      // If not found in cart.addOns, try product.addOns
+      if (addOnName == null && cart.product?.addOns != null) {
+        try {
+          var addOn = cart.product!.addOns!.firstWhere(
+            (a) => a.id == addOnId.id,
+          );
+          addOnName = addOn.name;
+        } catch (e) {
+          // Add-on not found, skip this one
+          continue;
+        }
+      }
+      
+      // Build display string
+      if (addOnName != null && addOnName.isNotEmpty) {
+        String displayName = addOnName;
+        if (quantity != null && quantity > 1) {
+          displayName += ' (x$quantity)';
+        }
+        addOnNames.add(displayName);
+      }
+    }
+    
+    return addOnNames.join(', ');
+  }
+
+  // Helper method to calculate total item price including add-ons and discount
+  double _calculateItemTotal(CartModel cart) {
+    // Get base price (use discounted price if available, otherwise regular price)
+    double basePrice = cart.discountedPrice ?? cart.price ?? 0;
+    
+    // Calculate add-ons price using ID-based matching
+    double addOnsPrice = 0;
+    if (cart.addOnIds != null && cart.addOnIds!.isNotEmpty) {
+      for (var addOnId in cart.addOnIds!) {
+        double? addOnPrice;
+        int? quantity = addOnId.quantity;
+        
+        // First try to find in cart.addOns by ID
+        if (cart.addOns != null && cart.addOns!.isNotEmpty) {
+          try {
+            var addOn = cart.addOns!.firstWhere(
+              (a) => a.id == addOnId.id,
+            );
+            addOnPrice = addOn.price;
+          } catch (e) {
+            // Not found in cart.addOns, continue to try product.addOns
+          }
+        }
+        
+        // If not found in cart.addOns, try product.addOns
+        if (addOnPrice == null && cart.product?.addOns != null) {
+          try {
+            var addOn = cart.product!.addOns!.firstWhere(
+              (a) => a.id == addOnId.id,
+            );
+            addOnPrice = addOn.price;
+          } catch (e) {
+            // Add-on not found, skip it
+            continue;
+          }
+        }
+        
+        // Calculate price for this add-on
+        if (addOnPrice != null && quantity != null) {
+          addOnsPrice += (addOnPrice * quantity);
+        }
+      }
+    }
+    
+    // Total = (base price + add-ons) * quantity
+    return (basePrice + addOnsPrice) * (cart.quantity ?? 1);
+  }
+
+  // Helper method to calculate delivery charge
+  // Follows the same professional calculation logic as checkout screen
+  double _calculateDeliveryCharge(CheckoutController checkoutController, CartController cartController) {
+    if (checkoutController.restaurant == null || checkoutController.distance == null) {
+      return 0;
+    }
+
+    // If order type is not delivery (take_away or dine_in), delivery charge is always 0
+    if (checkoutController.orderType != 'delivery') {
+      return 0;
+    }
+
+    try {
+      var restaurant = checkoutController.restaurant!;
+      var address = AddressHelper.getAddressFromSharedPref();
+      if (address?.zoneData == null) {
+        return 0;
+      }
+
+      // Find the zone data for this restaurant
+      ZoneData? zoneData;
+      if (address!.zoneData != null && address.zoneData!.isNotEmpty) {
+        try {
+          zoneData = address.zoneData!.firstWhere(
+            (data) => data.id == restaurant.zoneId,      
+          );
+        } catch (e) {
+          // Restaurant's zone not found in address zone data - use first available zone
+          zoneData = address.zoneData!.first;
+          print('⚠️ Restaurant zone (${restaurant.zoneId}) not found in address zones. Using first zone: ${zoneData?.id}');
+        }
+      } else {
+        print('❌ No zone data available');
+        return 0;
+      }
+      
+      if (zoneData == null) {
+        print('❌ Zone data is null');
+        return 0;
+      }
+
+      // Get delivery charges based on restaurant self-delivery system or zone settings
+      double perKmCharge = restaurant.selfDeliverySystem == 1 
+          ? (restaurant.perKmShippingCharge ?? 0)
+          : (zoneData.perKmShippingCharge ?? 0);
+      
+      // Debug: Log zone and restaurant info
+      print('🏪 Restaurant Info:');
+      print('   Self Delivery System: ${restaurant.selfDeliverySystem}');
+      print('   Zone ID: ${restaurant.zoneId}');
+      print('   Zone Data Found: ${zoneData.id}');
+      print('   Per KM Charge (Zone): ${zoneData.perKmShippingCharge}');
+      print('   Per KM Charge (Restaurant): ${restaurant.perKmShippingCharge}');
+      print('   Per KM Charge (Selected): $perKmCharge');
+
+      double minimumCharge = restaurant.selfDeliverySystem == 1 
+          ? (restaurant.minimumShippingCharge ?? 0)
+          : (zoneData.minimumShippingCharge ?? 0);
+
+      double? maximumCharge = restaurant.selfDeliverySystem == 1 
+          ? restaurant.maximumShippingCharge 
+          : zoneData.maximumShippingCharge;
+
+      // Step 1: Calculate base delivery charge = distance × per km charge
+      // Note: distance is stored in kilometers (converted from meters by dividing by 1000)
+      double? distance = checkoutController.distance;
+      if (distance == null || distance <= 0) {
+        // If distance is not calculated yet, return 0 (will be calculated when distance is available)
+        return 0;
+      }
+      
+      double deliveryCharge = distance * perKmCharge;
+      
+      // Debug: Log the calculation values
+      print('🔍 Delivery Charge Calculation:');
+      print('   Distance: $distance km');
+      print('   Per KM Charge: $perKmCharge');
+      print('   Calculated Charge: $deliveryCharge');
+      print('   Minimum Charge: $minimumCharge');
+      print('   Maximum Charge: $maximumCharge');
+
+      // Step 2: Apply minimum charge (if calculated charge is less than minimum)
+      if (deliveryCharge < minimumCharge) {
+        deliveryCharge = minimumCharge;
+        print('   ✅ Applied minimum charge: $deliveryCharge');
+      }
+
+      // Step 3: Add extra charge (for zone-based delivery, like vehicle charges)
+      if (restaurant.selfDeliverySystem == 0 && checkoutController.extraCharge != null && checkoutController.extraCharge! > 0) {
+        deliveryCharge = deliveryCharge + checkoutController.extraCharge!;
+      }
+
+      // Step 4: Apply maximum charge cap (if calculated charge exceeds maximum)
+      if (maximumCharge != null && deliveryCharge > maximumCharge) {
+        deliveryCharge = maximumCharge;
+      }
+
+      // Step 5: Apply increased delivery fee (bad weather/additional fees for zones)
+      if (restaurant.selfDeliverySystem == 0 && 
+          zoneData.increasedDeliveryFeeStatus == 1 && 
+          zoneData.increasedDeliveryFee != null) {
+        deliveryCharge = deliveryCharge + (deliveryCharge * (zoneData.increasedDeliveryFee! / 100));
+      }
+
+      // Step 6: Check free delivery distance (zone-based free delivery)
+      if (restaurant.selfDeliverySystem == 0 && 
+          Get.find<SplashController>().configModel!.freeDeliveryDistance != null && 
+          checkoutController.distance! <= Get.find<SplashController>().configModel!.freeDeliveryDistance!) {
+        deliveryCharge = 0;
+      }
+
+      // Step 7: Check restaurant's own free delivery distance
+      if (restaurant.selfDeliverySystem == 1 && 
+          restaurant.freeDeliveryDistanceStatus == true && 
+          restaurant.freeDeliveryDistanceValue != null &&
+          checkoutController.distance! <= restaurant.freeDeliveryDistanceValue!) {
+        deliveryCharge = 0;
+      }
+
+      // Step 8: Check free delivery based on order amount (Free delivery over)
+      double orderAmount = (cartController.itemPrice - cartController.itemDiscountPrice) + 
+                          cartController.addOns + 
+                          cartController.variationPrice;
+      if (Get.find<SplashController>().configModel!.freeDeliveryOver != null && 
+          Get.find<SplashController>().configModel!.freeDeliveryOver! > 0 &&
+          orderAmount >= Get.find<SplashController>().configModel!.freeDeliveryOver!) {
+        deliveryCharge = 0;
+      }
+
+      // Step 9: Check if restaurant offers free delivery
+      if (restaurant.freeDelivery == true) {
+        deliveryCharge = 0;
+      }
+
+      // Step 10: Check if coupon provides free delivery
+      if (Get.find<CouponController>().freeDelivery == true) {
+        deliveryCharge = 0;
+      }
+
+      double finalCharge = PriceConverter.toFixed(deliveryCharge);
+      print('💰 Final Delivery Charge: $finalCharge');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      return finalCharge;
+    } catch (e, stackTrace) {
+      print('❌ Error calculating delivery charge: $e');
+      print('Stack trace: $stackTrace');
+      return 0;
+    }
+  }
+
+  // Helper method to calculate tax (from restaurant)
+  // Note: Tax should be calculated on the order amount AFTER coupon discount is applied
+  double _calculateTax(CheckoutController checkoutController, CartController cartController, {double couponDiscount = 0}) {
+    if (checkoutController.restaurant == null) {
+      return 0;
+    }
+
+    try {
+      double? taxValue = checkoutController.restaurant!.tax;
+      if (taxValue == null || taxValue == 0) {
+        return 0;
+      }
+
+      // Get tax included status from config model (same as checkout screen)
+      bool taxIncluded = Get.find<SplashController>().configModel!.taxIncluded == 1;
+      
+      // Order amount = (itemPrice - discount) + addOns + variationPrice - couponDiscount
+      // Tax should be calculated on amount after coupon (matching checkout screen)
+      double orderAmount = (cartController.itemPrice - cartController.itemDiscountPrice) + 
+                          cartController.addOns + 
+                          cartController.variationPrice - 
+                          couponDiscount;
+
+      // Ensure orderAmount is not negative
+      if (orderAmount < 0) {
+        orderAmount = 0;
+      }
+
+      double tax = 0;
+
+      // Determine if tax is a fixed amount or percentage
+      // Typically: values >= 100 are fixed amounts (e.g., 200, 500)
+      // Values < 100 are typically percentages (e.g., 10 means 10%)
+      // However, since admin can set fixed amounts, we'll default to showing the value directly
+      // and only calculate percentage if the value is clearly a small percentage (1-50)
+      bool isLikelyPercentage = taxValue >= 1 && taxValue <= 50;
+
+      if (isLikelyPercentage) {
+        // Percentage-based tax (e.g., 10 means 10%)
+        if (taxIncluded) {
+          // If tax is included, extract it from the total
+          tax = orderAmount * taxValue / (100 + taxValue);
+        } else {
+          // If tax is not included, calculate it on top
+          tax = PriceConverter.calculation(orderAmount, taxValue, 'percent', 1);
+        }
+      } else {
+        // Treat as fixed tax amount (e.g., 200, 500, etc.)
+        tax = taxValue;
+      }
+
+      return PriceConverter.toFixed(tax);
+    } catch (e) {
+      // Fallback: return the tax value directly as it might be a fixed amount
+      try {
+        double? taxValue = checkoutController.restaurant!.tax;
+        return taxValue ?? 0;
+      } catch (e2) {
+        return 0;
+      }
+    }
   }
 
   Widget _buildAddMoreItemsButton(CartController cartController, bool isRestaurantOpen) {
@@ -902,6 +1351,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
 
   Widget _buildDeliveryPaymentTab(CartController cartController, RestaurantController restaurantController, bool isRestaurantOpen, bool isBusinessShutdown) {
     return SingleChildScrollView(
+      key: const ValueKey('delivery_payment_tab'),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -926,8 +1376,8 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
           
           const SizedBox(height: 16),
           
-          // Additional note section
-          _buildAdditionalNoteSection(),
+          // Commented out: Additional note section (replaced with delivery instructions custom text field)
+          // _buildAdditionalNoteSection(),
           
           const SizedBox(height: 16),
           
@@ -1479,15 +1929,15 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
 
   Widget _buildPricingSummary(CartController cartController) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.06),
             spreadRadius: 0,
-            blurRadius: 10,
+            blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1499,44 +1949,100 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
             children: [
               Icon(
                 Icons.receipt_long,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+                color: Theme.of(context).primaryColor,
                 size: 20,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 'Order Summary',
                 style: robotoMedium.copyWith(
-                  fontSize: 16,
+                  fontSize: 17,
                   color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           
-          // Sub-total
-          _buildSummaryRow(
-            icon: Icons.shopping_cart_outlined,
-            label: 'Sub-total (${cartController.cartList.length} ${cartController.cartList.length > 1 ? 'items' : 'item'})',
-            amount: PriceConverter.convertPrice(cartController.itemPrice),
+          // Sub-total (item price - discount + add-ons + variations)
+          GetBuilder<CheckoutController>(
+            builder: (checkoutController) {
+              double subTotalItems = (cartController.itemPrice - cartController.itemDiscountPrice) + 
+                                     cartController.addOns + 
+                                     cartController.variationPrice;
+              return _buildSummaryRow(
+                icon: Icons.shopping_cart_outlined,
+                label: 'Sub-total (${cartController.cartList.length} ${cartController.cartList.length > 1 ? 'items' : 'item'})',
+                amount: PriceConverter.convertPrice(subTotalItems),
+              );
+            },
           ),
           
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           
-          // Delivery fee
-          _buildSummaryRow(
-            icon: Icons.local_shipping_outlined,
-            label: 'Delivery Fee',
-            amount: PriceConverter.convertPrice(0), // Will be calculated properly
+          // Delivery fee (reactive to cart, checkout, and coupon changes)
+          GetBuilder<CheckoutController>(
+            builder: (checkoutController) {
+              return GetBuilder<CouponController>(
+                builder: (couponController) {
+                  return GetBuilder<CartController>(
+                    builder: (cartCtrl) {
+                      double deliveryCharge = _calculateDeliveryCharge(checkoutController, cartCtrl);
+                      return _buildSummaryRow(
+                        icon: Icons.local_shipping_outlined,
+                        label: 'Delivery Fee',
+                        amount: PriceConverter.convertPrice(deliveryCharge),
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
           
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           
-          // Tax
-          _buildSummaryRow(
-            icon: Icons.receipt_outlined,
-            label: 'Tax',
-            amount: PriceConverter.convertPrice(0), // Will be calculated properly
+          // Service Fee (additional charge from config)
+          GetBuilder<SplashController>(
+            builder: (splashController) {
+              bool showServiceFee = splashController.configModel?.additionalChargeStatus == true && 
+                                    splashController.configModel?.additionCharge != null &&
+                                    splashController.configModel!.additionCharge! > 0;
+              
+              if (showServiceFee) {
+                return _buildSummaryRow(
+                  icon: Icons.receipt_outlined,
+                  label: splashController.configModel!.additionalChargeName ?? 'Service Fee',
+                  amount: PriceConverter.convertPrice(splashController.configModel!.additionCharge!),
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+          
+          // Tax (only show if > 0)
+          GetBuilder<CheckoutController>(
+            builder: (checkoutController) {
+              return GetBuilder<CouponController>(
+                builder: (couponController) {
+                  double couponDiscount = couponController.discount ?? 0;
+                  double tax = _calculateTax(checkoutController, cartController, couponDiscount: couponDiscount);
+                  if (tax > 0) {
+                    return Column(
+                      children: [
+                        const SizedBox(height: 14),
+                        _buildSummaryRow(
+                          icon: Icons.account_balance_outlined,
+                          label: 'Tax',
+                          amount: PriceConverter.convertPrice(tax),
+                        ),
+                      ],
+                    );
+                  }
+                  return const SizedBox();
+                },
+              );
+            },
           ),
           
           // Coupon discount
@@ -1545,7 +2051,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
               if (couponController.discount! > 0) {
                 return Column(
                   children: [
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     _buildSummaryRow(
                       icon: Icons.local_offer_outlined,
                       label: 'Coupon Discount',
@@ -1559,45 +2065,112 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
             },
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           
           // Divider
           Container(
-            height: 1,
-            color: Colors.grey.shade200,
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.account_balance_wallet_outlined,
-                    color: Colors.orange,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Total',
-                    style: robotoMedium.copyWith(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
+            height: 1.5,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  Colors.grey.shade300,
+                  Colors.transparent,
                 ],
               ),
-              Text(
-                PriceConverter.convertPrice(cartController.subTotal),
-                style: robotoBold.copyWith(
-                  fontSize: 18,
-                  color: Colors.orange,
-                ),
-              ),
-            ],
+            ),
+          ),
+          
+          const SizedBox(height: 18),
+          
+          // Total (reactive to cart, checkout, coupon, and config changes)
+          GetBuilder<CouponController>(
+            builder: (couponController) {
+              return GetBuilder<CheckoutController>(
+                builder: (checkoutController) {
+                  return GetBuilder<SplashController>(
+                    builder: (splashController) {
+                      return GetBuilder<CartController>(
+                        builder: (cartCtrl) {
+                          // Calculate all components
+                          double subTotalItems = (cartCtrl.itemPrice - cartCtrl.itemDiscountPrice) + 
+                                                 cartCtrl.addOns + 
+                                                 cartCtrl.variationPrice;
+                          double deliveryCharge = _calculateDeliveryCharge(checkoutController, cartCtrl);
+                          double serviceFee = splashController.configModel?.additionalChargeStatus == true 
+                              ? (splashController.configModel!.additionCharge ?? 0) 
+                              : 0;
+                          double couponDiscount = couponController.discount ?? 0;
+                          
+                          // Calculate tax AFTER coupon discount is applied
+                          double tax = _calculateTax(checkoutController, cartCtrl, couponDiscount: couponDiscount);
+                          
+                          // Get tax included status
+                          bool taxIncluded = splashController.configModel?.taxIncluded == 1;
+                          
+                          // Auto-apply first-order coupon once if available
+                          if(!_firstOrderAutoApplied) {
+                            final user = Get.find<ProfileController>().userInfoModel;
+                            if(user != null && (user.orderCount ?? 0) == 0) {
+                              final cc = Get.find<CouponController>();
+                              Future.microtask(() async {
+                                await cc.ensureCouponListLoaded();
+                                final fo = cc.firstOrderCoupon;
+                                if(mounted && fo != null && cc.coupon == null && (cc.discount ?? 0) == 0 && !cc.freeDelivery) {
+                                  _firstOrderAutoApplied = true;
+                                  double totalBefore = subTotalItems + deliveryCharge + serviceFee + (taxIncluded ? 0 : tax);
+                                  double orderAmount = (cartCtrl.itemPrice - cartCtrl.itemDiscountPrice) + cartCtrl.addOns + cartCtrl.variationPrice;
+                                  int? restaurantId = cartCtrl.cartList.isNotEmpty ? cartCtrl.cartList.first.product?.restaurantId : null;
+                                  cc.applyCoupon(fo.code!, orderAmount, deliveryCharge, deliveryCharge, totalBefore, restaurantId);
+                                }
+                              });
+                            }
+                          }
+                          
+                          // Calculate total: subTotal + delivery + serviceFee + (tax if not included) - couponDiscount
+                          // This matches the checkout screen calculation pattern
+                          double total = subTotalItems + 
+                                        deliveryCharge + 
+                                        serviceFee + 
+                                        (taxIncluded ? 0 : tax) - 
+                                        couponDiscount;
+                      
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.account_balance_wallet_outlined,
+                                color: Colors.orange,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Total',
+                                style: robotoMedium.copyWith(
+                                  fontSize: 17,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            PriceConverter.convertPrice(total),
+                            style: robotoBold.copyWith(
+                              fontSize: 20,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      );
+                        },
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -1613,28 +2186,34 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: robotoRegular.copyWith(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+        Expanded(
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                size: 18,
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  label,
+                  style: robotoRegular.copyWith(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 12),
         Text(
           amount,
           style: robotoMedium.copyWith(
-            fontSize: 14,
+            fontSize: 15,
             color: isDiscount ? Colors.green : Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: isDiscount ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ],
@@ -2087,7 +2666,9 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
       subscriptionStartAt: checkoutController.subscriptionOrder ? DateConverter.dateToDateAndTime(checkoutController.subscriptionRange!.start) : '',
       subscriptionEndAt: checkoutController.subscriptionOrder ? DateConverter.dateToDateAndTime(checkoutController.subscriptionRange!.end) : '',
       unavailableItemNote: cartController.notAvailableIndex != -1 ? cartController.notAvailableList[cartController.notAvailableIndex] : '',
-      deliveryInstruction: checkoutController.selectedInstruction != -1 ? AppConstants.deliveryInstructionList[checkoutController.selectedInstruction] : '',
+      deliveryInstruction: checkoutController.deliveryInstructionController.text.trim().isNotEmpty 
+          ? checkoutController.deliveryInstructionController.text.trim()
+          : '',
       partialPayment: checkoutController.isPartialPay ? 1 : 0, 
       guestId: isGuestLogIn ? int.parse(Get.find<AuthController>().getGuestId()) : 0,
       isBuyNow: 0, 
@@ -2141,6 +2722,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
               result.longitude != null &&
               checkoutController.restaurant!.latitude != null &&
               checkoutController.restaurant!.longitude != null) {
+            // Debug: log origin & destination (place search result)
+            print('📍 Distance inputs (place result):');
+            print('   Origin (selected place): ${result.address}');
+            print('   Origin lat,lng: ${result.latitude}, ${result.longitude}');
+            print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+            print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
             checkoutController.getDistanceInKM(
               LatLng(double.parse(result.latitude!), double.parse(result.longitude!)),
               LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
@@ -2240,6 +2827,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                                     address.longitude != null &&
                                     checkoutController.restaurant!.latitude != null &&
                                     checkoutController.restaurant!.longitude != null) {
+                                  // Debug: log origin & destination (address add)
+                                  print('📍 Distance inputs (address add):');
+                                  print('   Origin (new address): ${address.address}');
+                                  print('   Origin lat,lng: ${address.latitude}, ${address.longitude}');
+                                  print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+                                  print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
                                   checkoutController.getDistanceInKM(
                                     LatLng(double.parse(address.latitude!), double.parse(address.longitude!)),
                                     LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
@@ -2286,6 +2879,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                                   // Calculate distance
                                   if (checkoutController.restaurant!.latitude != null &&
                                       checkoutController.restaurant!.longitude != null) {
+                                    // Debug: log origin & destination (use current location)
+                                    print('📍 Distance inputs (current location):');
+                                    print('   Origin (device location)');
+                                    print('   Origin lat,lng: ${locationController.position.latitude}, ${locationController.position.longitude}');
+                                    print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+                                    print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
                                     checkoutController.getDistanceInKM(
                                       LatLng(locationController.position.latitude, locationController.position.longitude),
                                       LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
@@ -2337,6 +2936,12 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                                   address.longitude != null &&
                                   checkoutController.restaurant!.latitude != null &&
                                   checkoutController.restaurant!.longitude != null) {
+                                // Debug: log origin & destination (existing address select)
+                                print('📍 Distance inputs (existing address):');
+                                print('   Origin (selected address): ${address.address}');
+                                print('   Origin lat,lng: ${address.latitude}, ${address.longitude}');
+                                print('   Destination (restaurant): ${checkoutController.restaurant!.name}');
+                                print('   Destination lat,lng: ${checkoutController.restaurant!.latitude}, ${checkoutController.restaurant!.longitude}');
                                 checkoutController.getDistanceInKM(
                                   LatLng(double.parse(address.latitude!), double.parse(address.longitude!)),
                                   LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),

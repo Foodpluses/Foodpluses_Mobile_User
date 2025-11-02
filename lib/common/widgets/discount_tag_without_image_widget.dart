@@ -24,7 +24,7 @@ class DiscountTagWithoutImageWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
       ),
       child: Text(
-        '(${discount! > 0 ? '$discount${discountType == 'percent' ? '%' : Get.find<SplashController>().configModel!.currencySymbol}${'off'.tr}' : 'free_delivery'.tr})',
+        '(${discount! > 0 ? '$discount${discountType == 'percent' ? '%' : 'NGN'}${'off'.tr}' : 'free_delivery'.tr})',
         style: robotoBold.copyWith(
           color: Colors.green,
           fontSize: fontSize ?? (ResponsiveHelper.isMobile(context) ? 8 : 12),

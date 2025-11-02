@@ -26,16 +26,13 @@ class Result {
   String? formattedAddress;
   Geometry? geometry;
   String? icon;
-  String? iconBackgroundColor;
-  String? iconMaskBaseUri;
+  // Removed Pro fields to reduce API costs: iconBackgroundColor, iconMaskBaseUri, utcOffset, website
   String? name;
   List<Photos>? photos;
   String? placeId;
   String? reference;
   List<String>? types;
   String? url;
-  int? utcOffset;
-  String? website;
 
   Result(
       {this.addressComponents,
@@ -43,16 +40,12 @@ class Result {
         this.formattedAddress,
         this.geometry,
         this.icon,
-        this.iconBackgroundColor,
-        this.iconMaskBaseUri,
         this.name,
         this.photos,
         this.placeId,
         this.reference,
         this.types,
-        this.url,
-        this.utcOffset,
-        this.website});
+        this.url});
 
   Result.fromJson(Map<String, dynamic> json) {
     if (json['address_components'] != null) {
@@ -67,8 +60,6 @@ class Result {
         ? Geometry.fromJson(json['geometry'])
         : null;
     icon = json['icon'];
-    iconBackgroundColor = json['icon_background_color'];
-    iconMaskBaseUri = json['icon_mask_base_uri'];
     name = json['name'];
     if (json['photos'] != null) {
       photos = [];
@@ -80,8 +71,6 @@ class Result {
     reference = json['reference'];
     types = json['types'].cast<String>();
     url = json['url'];
-    utcOffset = json['utc_offset'];
-    website = json['website'];
   }
 
   Map<String, dynamic> toJson() {
@@ -96,8 +85,6 @@ class Result {
       data['geometry'] = geometry!.toJson();
     }
     data['icon'] = icon;
-    data['icon_background_color'] = iconBackgroundColor;
-    data['icon_mask_base_uri'] = iconMaskBaseUri;
     data['name'] = name;
     if (photos != null) {
       data['photos'] = photos!.map((v) => v.toJson()).toList();
@@ -106,8 +93,6 @@ class Result {
     data['reference'] = reference;
     data['types'] = types;
     data['url'] = url;
-    data['utc_offset'] = utcOffset;
-    data['website'] = website;
     return data;
   }
 }

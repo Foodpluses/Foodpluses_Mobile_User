@@ -63,7 +63,7 @@ class WebBonusBannerViewWidget extends StatelessWidget {
 
                             Text(
                               '${'add_fund_to_wallet_minimum'.tr} ${PriceConverter.convertPrice(walletController.fundBonusList![index1].minimumAddAmount)} ${'and_enjoy'.tr} ${walletController.fundBonusList![index1].bonusAmount} '
-                                  '${walletController.fundBonusList![index1].bonusType == 'amount' ? Get.find<SplashController>().configModel!.currencySymbol : '%'} ${'bonus'.tr}',
+                                  '${walletController.fundBonusList![index1].bonusType == 'amount' ? 'NGN' : '%'} ${'bonus'.tr}',
                               style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
                               maxLines: 2, overflow: TextOverflow.ellipsis,
                             ),
@@ -100,7 +100,7 @@ class WebBonusBannerViewWidget extends StatelessWidget {
 
                             Text(
                               '${'add_fund_to_wallet_minimum'.tr} ${PriceConverter.convertPrice(walletController.fundBonusList![index2].minimumAddAmount)} ${'and_enjoy'.tr} ${walletController.fundBonusList![index2].bonusAmount} '
-                                  '${walletController.fundBonusList![index2].bonusType == 'amount' ? Get.find<SplashController>().configModel!.currencySymbol : '%'} ${'bonus'.tr}',
+                                  '${walletController.fundBonusList![index2].bonusType == 'amount' ? 'NGN' : '%'} ${'bonus'.tr}',
                               style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
                             ),
                           ])),

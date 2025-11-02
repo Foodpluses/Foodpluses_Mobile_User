@@ -224,7 +224,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                                   Icon(Icons.local_shipping, size: 20, color: Theme.of(context).primaryColor),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '₦1,250',
+                                    PriceConverter.convertPrice(Get.find<RestaurantController>().calculateDeliveryFee(restaurant!)),
                                     style: robotoMedium.copyWith(
                                       fontSize: 12,
                                       color: Colors.black87,
@@ -352,8 +352,8 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                         productView: RestaurantProductViewWidget(
                           products: restController.isSearching ? restController.restaurantSearchProductModel?.products : restController.categoryList!.isNotEmpty ? restController.restaurantProducts : null,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                            horizontal: 12,
+                            vertical: 6,
                           ),
                         ),
                       ),

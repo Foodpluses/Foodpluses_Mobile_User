@@ -42,14 +42,10 @@ class ItemCardWidget extends StatelessWidget {
       1, [], [], isCampaignItem, product, [], product.cartQuantityLimit, [],
     );
 
-    // Check if item should show closed overlay
-    bool shouldShowOverlay = _shouldShowClosedOverlay(product);
-    String closedText = _getClosedText(product);
+    // Check if item should hide add button
+    bool shouldHideAddButton = _shouldShowClosedOverlay(product);
 
-    return ClosedOverlayWidget(
-      isClosed: shouldShowOverlay,
-      closedText: closedText,
-      child: Container(
+    return Container(
       width: isPopularNearbyItem! ? double.infinity : width,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -110,14 +106,16 @@ class ItemCardWidget extends StatelessWidget {
                   fromTop: isCampaignItem ? 7 : 10, fontSize: Dimensions.fontSizeExtraSmall, paddingVertical: 7, fromLeft: isCampaignItem ? -7 : -2,
                 ),
 
-                Positioned(
-                  bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
-                  child: GetBuilder<ProductController>(builder: (productController) {
-                    return GetBuilder<CartController>(builder: (cartController) {
-                      int cartQty = cartController.cartQuantity(product.id!);
-                      int cartIndex = cartController.isExistInCart(product.id, null);
+                // Add button - hide when restaurant is closed
+                if (!shouldHideAddButton)
+                  Positioned(
+                    bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
+                    child: GetBuilder<ProductController>(builder: (productController) {
+                      return GetBuilder<CartController>(builder: (cartController) {
+                        int cartQty = cartController.cartQuantity(product.id!);
+                        int cartIndex = cartController.isExistInCart(product.id, null);
 
-                      return cartQty != 0 ? Container(
+                        return cartQty != 0 ? Container(
                         decoration: BoxDecoration(
                           color: Theme.of(context).primaryColor,
                           borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
@@ -221,9 +219,9 @@ class ItemCardWidget extends StatelessWidget {
                           child: Icon(Icons.add, color: Theme.of(context).primaryColor, size: 20),
                         ),
                       );
-                    });
-                  }),
-                ),
+                      });
+                    }),
+                  ),
 
               ],
             ),
@@ -284,7 +282,6 @@ class ItemCardWidget extends StatelessWidget {
           ),
         ]),
       ),
-      )
     );
   }
 

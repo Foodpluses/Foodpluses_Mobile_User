@@ -21,7 +21,8 @@ class DiscountTagWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isRightSide = Get.find<SplashController>().configModel!.currencySymbolDirection == 'right';
-    String currencySymbol = Get.find<SplashController>().configModel!.currencySymbol!;
+    // String currencySymbol = Get.find<SplashController>().configModel!.currencySymbol!;
+    String currencySymbol = 'NGN'; // Hardcoded to Naira with fallback
 
     return !isProductBottomSheet ? (discount! > 0 || freeDelivery!) ? Positioned(
       top: fromTop, left: fromLeft,

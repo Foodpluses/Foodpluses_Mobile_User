@@ -202,7 +202,7 @@ class _AddFundDialogueWidgetState extends State<AddFundDialogueWidget> {
     }else if(walletController.digitalPaymentName == ''){
       showCustomSnackBar('please_select_payment_method'.tr);
     }else{
-      double amount = double.parse(inputAmountController.text.replaceAll(Get.find<SplashController>().configModel!.currencySymbol!, ''));
+      double amount = double.parse(inputAmountController.text.replaceAll('NGN', ''));
       walletController.addFundToWallet(amount, walletController.digitalPaymentName!);
     }
   }

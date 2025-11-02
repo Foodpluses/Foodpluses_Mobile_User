@@ -22,7 +22,8 @@ class PriceConverter {
     }
 
     bool isRightSide = Get.find<SplashController>().configModel!.currencySymbolDirection == 'right';
-    String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    // String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    String currencySymbol = _getNairaSymbol(); // Hardcoded to Naira with fallback
     
     return '${isRightSide ? '' : '$currencySymbol '}'
         '${(toFixed(price)).toStringAsFixed(forDM ? 0 : digitAfterDecimalPoint)
@@ -39,7 +40,8 @@ class PriceConverter {
       }
     }
     bool isRightSide = Get.find<SplashController>().configModel!.currencySymbolDirection == 'right';
-    String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    // String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    String currencySymbol = _getNairaSymbol(); // Hardcoded to Naira with fallback
     
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -75,7 +77,8 @@ class PriceConverter {
   }
 
   static String percentageCalculation(String price, String discount, String discountType) {
-    String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    // String currencySymbol = _getSafeCurrencySymbol(Get.find<SplashController>().configModel!.currencySymbol!);
+    String currencySymbol = _getNairaSymbol(); // Hardcoded to Naira with fallback
     return '$discount${discountType == 'percent' ? '%' : currencySymbol} OFF';
   }
 
@@ -135,6 +138,13 @@ class PriceConverter {
         // If it still doesn't work, fallback to a simple text representation
         return symbol.isNotEmpty ? symbol : 'CUR';
     }
+  }
+
+  /// Get Nigerian Naira symbol with fallback for devices that don't support Unicode
+  static String _getNairaSymbol() {
+    // For now, use 'NGN' as fallback since ₦ shows as square on some devices
+    // You can change this to '₦' if you want to try the Unicode symbol first
+    return 'NGN';
   }
 
 }

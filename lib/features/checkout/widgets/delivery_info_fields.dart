@@ -160,10 +160,15 @@ class DeliveryInfoFields extends StatelessWidget {
                     var address = await Get.toNamed(RouteHelper.getEditAddressRoute(checkoutController.guestAddress, fromGuest: true));
                     if(address != null) {
                       checkoutController.setGuestAddress(address);
+                      // Persist the updated address so zone and other calculations use the latest
+                      AddressHelper.saveAddressInSharedPref(address);
+                      // Recalculate distance with the newly saved coordinates
                       checkoutController.getDistanceInKM(
                         LatLng(double.parse(address.latitude), double.parse(address.longitude)),
                         LatLng(double.parse(checkoutController.restaurant!.latitude!), double.parse(checkoutController.restaurant!.longitude!)),
                       );
+                      // Trigger UI update for any listeners relying on checkout controller
+                      checkoutController.update();
                     }
                   },
                   child: Image.asset(Images.editDelivery, height: 20, width: 20, color: Theme.of(context).primaryColor),

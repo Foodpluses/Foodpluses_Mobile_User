@@ -12,6 +12,7 @@ import 'package:stackfood_multivendor/features/restaurant/domain/models/recommen
 import 'package:stackfood_multivendor/common/models/restaurant_model.dart';
 import 'package:stackfood_multivendor/features/category/domain/models/category_model.dart';
 import 'package:stackfood_multivendor/features/restaurant/domain/services/restaurant_service_interface.dart';
+import 'package:stackfood_multivendor/features/splash/controllers/splash_controller.dart';
 import 'package:stackfood_multivendor/helper/address_helper.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -484,5 +485,62 @@ class RestaurantController extends GetxController implements GetxService {
 
   String? getDiscountType(Restaurant restaurant) => restaurant.discount != null ? restaurant.discount!.discountType : 'percent';
 
+  /// Calculate delivery fee for a restaurant
+  double calculateDeliveryFee(Restaurant restaurant) {
+    try {
+      // Get zone data from address
+      AddressModel? addressModel = AddressHelper.getAddressFromSharedPref();
+      if (addressModel?.zoneData == null) {
+        return restaurant.minimumShippingCharge ?? 0;
+      }
+
+      ZoneData? zoneData = addressModel!.zoneData!.firstWhereOrNull((data) => data.id == restaurant.zoneId);
+      if (zoneData == null) {
+        return restaurant.minimumShippingCharge ?? 0;
+      }
+
+      // Get delivery charges
+      double perKmCharge = restaurant.selfDeliverySystem == 1 
+          ? restaurant.perKmShippingCharge ?? 0
+          : zoneData.perKmShippingCharge ?? 0;
+
+      double minimumCharge = restaurant.selfDeliverySystem == 1 
+          ? restaurant.minimumShippingCharge ?? 0
+          : zoneData.minimumShippingCharge ?? 0;
+
+      double? maximumCharge = restaurant.selfDeliverySystem == 1 
+          ? restaurant.maximumShippingCharge
+          : zoneData.maximumShippingCharge;
+
+      // Use default distance of 1km for delivery fee calculation
+      // In a real scenario, this would be calculated based on user's location to restaurant
+      double distance = 1.0;
+
+      // Calculate delivery charge
+      double deliveryCharge = distance * perKmCharge;
+
+      // Apply minimum charge
+      if (deliveryCharge < minimumCharge) {
+        deliveryCharge = minimumCharge;
+      }
+
+      // Apply maximum charge
+      if (maximumCharge != null && deliveryCharge > maximumCharge) {
+        deliveryCharge = maximumCharge;
+      }
+
+      // Check for free delivery distance
+      if (restaurant.selfDeliverySystem == 0 && 
+          Get.find<SplashController>().configModel!.freeDeliveryDistance != null && 
+          Get.find<SplashController>().configModel!.freeDeliveryDistance! >= distance) {
+        deliveryCharge = 0;
+      }
+
+      return deliveryCharge;
+    } catch (e) {
+      // Fallback to minimum charge if calculation fails
+      return restaurant.minimumShippingCharge ?? 0;
+    }
+  }
 
 }

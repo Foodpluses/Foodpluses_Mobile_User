@@ -48,7 +48,8 @@ class PricingViewWidget extends StatelessWidget {
 
               !isDesktop && !fromDineIn ? CutleryViewWidget(restaurantController: restaurantController, cartController: cartController) : const SizedBox(),
 
-              !isDesktop ? NotAvailableProductViewWidget(cartController: cartController) : const SizedBox(),
+              // Commented out: Not available product dropdown
+              // !isDesktop ? NotAvailableProductViewWidget(cartController: cartController) : const SizedBox(),
 
               !isDesktop ? const DeliveryInstructionView() : const SizedBox(),
 
@@ -115,7 +116,8 @@ class PricingViewWidget extends StatelessWidget {
 
               isDesktop && !fromDineIn ? CutleryViewWidget(restaurantController: restaurantController, cartController: cartController) : const SizedBox(),
 
-              isDesktop ? NotAvailableProductViewWidget(cartController: cartController) : const SizedBox(),
+              // Commented out: Not available product dropdown
+              // isDesktop ? NotAvailableProductViewWidget(cartController: cartController) : const SizedBox(),
 
               isDesktop ? const DeliveryInstructionView() : const SizedBox(),
 

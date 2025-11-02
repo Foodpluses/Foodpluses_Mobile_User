@@ -72,6 +72,7 @@ class CheckoutController extends GetxController implements GetxService {
 
   final TextEditingController couponController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
+  final TextEditingController deliveryInstructionController = TextEditingController();
   final TextEditingController tipController = TextEditingController(text: '0');
   final TextEditingController streetNumberController = TextEditingController();
   final TextEditingController houseController = TextEditingController();

@@ -58,7 +58,7 @@ class BonusBannerWidget extends StatelessWidget {
 
                         Text(
                           '${'add_fund_to_wallet_minimum'.tr} ${PriceConverter.convertPrice(walletController.fundBonusList![index].minimumAddAmount)} ${'and_enjoy'.tr} ${walletController.fundBonusList![index].bonusAmount} '
-                              '${walletController.fundBonusList![index].bonusType == 'amount' ? Get.find<SplashController>().configModel!.currencySymbol : '%'} ${'bonus'.tr}',
+                              '${walletController.fundBonusList![index].bonusType == 'amount' ? 'NGN' : '%'} ${'bonus'.tr}',
                           style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
                           maxLines: 2, overflow: TextOverflow.ellipsis,
                         ),

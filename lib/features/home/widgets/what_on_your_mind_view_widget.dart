@@ -17,44 +17,34 @@ class WhatOnYourMindViewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CategoryController>(builder: (categoryController) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-        decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Padding(
-          padding: EdgeInsets.only(
-            top: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeLarge : Dimensions.paddingSizeOverLarge,
-            left: Get.find<LocalizationController>().isLtr ? Dimensions.paddingSizeExtraSmall : 0,
-            right: Get.find<LocalizationController>().isLtr ? 0 : Dimensions.paddingSizeExtraSmall,
-            bottom: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeDefault : Dimensions.paddingSizeOverLarge,
-          ),
-          child: ResponsiveHelper.isDesktop(context) ? Text('what_on_your_mind'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, fontWeight: FontWeight.w600)) :
-          Padding(padding: const EdgeInsets.only(left: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeDefault),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('what_on_your_mind'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge, fontWeight: FontWeight.w600, color: Colors.orange.shade700)),
-              ArrowIconButtonWidget(onTap: () => Get.toNamed(RouteHelper.getCategoryRoute())),
-            ],
-            ),
-          ),
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        ResponsiveHelper.isDesktop(context) ? Padding(
+          padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault, left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('what_on_your_mind'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, fontWeight: FontWeight.w600)),
+            ArrowIconButtonWidget(onTap: () => Get.toNamed(RouteHelper.getCategoryRoute())),
+          ]),
+        ) : Padding(
+          padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault, bottom: Dimensions.paddingSizeSmall),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('what_on_your_mind'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, fontWeight: FontWeight.w500, color: Colors.grey.shade700)),
+            ArrowIconButtonWidget(onTap: () => Get.toNamed(RouteHelper.getCategoryRoute())),
+          ]),
         ),
 
         SizedBox(
-          height: ResponsiveHelper.isMobile(context) ? 120 : 170,
+          height: ResponsiveHelper.isMobile(context) ? 100 : 140,
           child: categoryController.categoryList != null ? ListView.builder(
             physics: ResponsiveHelper.isMobile(context) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault),
+            padding: EdgeInsets.only(left: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeDefault : 0),
             itemCount: categoryController.categoryList!.length > 10 ? 10 : categoryController.categoryList!.length,
             itemBuilder: (context, index) {
 
               if(index == 9) {
                 return ResponsiveHelper.isDesktop(context) ? Padding(
-                  padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, top: Dimensions.paddingSizeSmall),
+                  padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, top: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeDefault),
                   child: Container(
                     width: 70,
                     padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall, right: Dimensions.paddingSizeExtraSmall, top: Dimensions.paddingSizeSmall, bottom: Dimensions.paddingSizeSmall),
@@ -81,8 +71,8 @@ class WhatOnYourMindViewWidget extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeDefault),
                 child: Container(
-                  width: ResponsiveHelper.isMobile(context) ? 70 : 100,
-                  height: ResponsiveHelper.isMobile(context) ? 70 : 100,
+                  width: ResponsiveHelper.isMobile(context) ? 65 : 90,
+                  height: ResponsiveHelper.isMobile(context) ? 85 : 120,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
@@ -95,25 +85,26 @@ class WhatOnYourMindViewWidget extends StatelessWidget {
                     child: Column(children: [
 
                       Container(
-                        padding: const EdgeInsets.all(2),
+                        padding: const EdgeInsets.all(1.5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                          color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
+                          color: Colors.grey.shade200,
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                           child: CustomImageWidget(
                             image: '${categoryController.categoryList![index].imageFullUrl}',
-                            height: ResponsiveHelper.isMobile(context) ? 70 : 100, width: ResponsiveHelper.isMobile(context) ? 70 : 100, fit: BoxFit.cover,
+                            height: ResponsiveHelper.isMobile(context) ? 62 : 88, width: ResponsiveHelper.isMobile(context) ? 62 : 88, fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      SizedBox(height: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeDefault : Dimensions.paddingSizeLarge),
+                      SizedBox(height: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeDefault),
 
                       Expanded(child: Text(
                         categoryController.categoryList![index].name!,
-                        style: robotoMedium.copyWith(
-                          fontSize: Dimensions.fontSizeSmall,
+                        style: robotoRegular.copyWith(
+                          fontSize: ResponsiveHelper.isMobile(context) ? 11 : 12,
+                          color: Colors.grey.shade700,
                         ),
                         maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
                       )),
@@ -125,11 +116,7 @@ class WhatOnYourMindViewWidget extends StatelessWidget {
             },
           ) : WebWhatOnYourMindViewShimmer(categoryController: categoryController),
         ),
-
-        const SizedBox(height: Dimensions.paddingSizeLarge),
-
-        ]),
-      );
+      ]);
     });
   }
 }
@@ -141,39 +128,39 @@ class WebWhatOnYourMindViewShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: ResponsiveHelper.isMobile(context) ? 120 : 170,
+      height: ResponsiveHelper.isMobile(context) ? 100 : 140,
       child: ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: 10,
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: Dimensions.paddingSizeSmall),
+        padding: const EdgeInsets.only(left: 0),
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall, top: Dimensions.paddingSizeSmall),
+            padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeDefault, top: Dimensions.paddingSizeSmall),
             child: Container(
-              width: ResponsiveHelper.isMobile(context) ? 70 : 108,
-              height: ResponsiveHelper.isMobile(context) ? 70 : 100,
+              width: ResponsiveHelper.isMobile(context) ? 65 : 90,
+              height: ResponsiveHelper.isMobile(context) ? 85 : 120,
               padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
               margin: EdgeInsets.only(top: ResponsiveHelper.isMobile(context) ? 0 : Dimensions.paddingSizeSmall),
               child: Column(children: [
 
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                   child: Shimmer(
                     child: Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusSmall), color: Theme.of(context).shadowColor),
-                      height: ResponsiveHelper.isMobile(context) ? 70 : 80, width: 70,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), color: Theme.of(context).shadowColor),
+                      height: ResponsiveHelper.isMobile(context) ? 62 : 88, width: ResponsiveHelper.isMobile(context) ? 62 : 88,
                     ),
                   ),
                 ),
-                const SizedBox(height: Dimensions.paddingSizeSmall),
+                SizedBox(height: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeDefault),
 
                 ClipRRect(
                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   child: Shimmer(
                     child: Container(
-                      height: ResponsiveHelper.isMobile(context) ? 10 : 15, width: 150,
+                      height: ResponsiveHelper.isMobile(context) ? 10 : 12, width: 60,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusSmall), color: Theme.of(context).shadowColor),
                     ),
                   ),

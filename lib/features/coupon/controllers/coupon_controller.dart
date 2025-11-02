@@ -34,6 +34,30 @@ class CouponController extends GetxController implements GetxService {
   int _currentIndex = 0;
   int get currentIndex => _currentIndex;
 
+  // Helpers for first-order coupons
+  Future<void> ensureCouponListLoaded() async {
+    if(_couponList == null) {
+      await getCouponList();
+    }
+  }
+
+  CouponModel? get firstOrderCoupon {
+    try {
+      return _couponList?.firstWhere((c) => (c.couponType ?? '').toLowerCase() == 'first_order');
+    } catch(_) {
+      return null;
+    }
+  }
+
+  bool get hasFirstOrderFreeDelivery {
+    final c = firstOrderCoupon;
+    if(c == null) return false;
+    final type = (c.discountType ?? '').toLowerCase();
+    final data = (c.data ?? '').toLowerCase();
+    final title = (c.title ?? '').toLowerCase();
+    return type == 'free_delivery' || data.contains('free_delivery') || title.contains('free delivery');
+  }
+
   Future<void> getCouponList({int? restaurantId}) async {
     if(Get.find<ProfileController>().userInfoModel == null){
       await Get.find<ProfileController>().getUserInfo();
