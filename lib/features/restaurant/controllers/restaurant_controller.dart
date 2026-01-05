@@ -271,6 +271,38 @@ class RestaurantController extends GetxController implements GetxService {
     }
   }
 
+  List<Restaurant>? _discountedRestaurantList;
+  List<Restaurant>? get discountedRestaurantList => _discountedRestaurantList;
+
+  Future<void> getDiscountedRestaurantList(bool reload, String type, bool notify, {DataSourceEnum dataSource = DataSourceEnum.local, bool fromRecall = false}) async {
+    _type = type;
+    if (reload) {
+      _discountedRestaurantList = null;
+    }
+    if (notify) {
+      update();
+    }
+    List<Restaurant>? discountedList;
+    if (_discountedRestaurantList == null || reload || fromRecall) {
+      if (dataSource == DataSourceEnum.local) {
+        discountedList = await restaurantServiceInterface.getDiscountedRestaurantList(type, source: DataSourceEnum.local);
+        _prepareDiscountedRestaurantList(discountedList);
+        getDiscountedRestaurantList(false, type, false, dataSource: DataSourceEnum.client, fromRecall: true);
+      } else {
+        discountedList = await restaurantServiceInterface.getDiscountedRestaurantList(type, source: DataSourceEnum.client);
+        _prepareDiscountedRestaurantList(discountedList);
+      }
+    }
+  }
+
+  _prepareDiscountedRestaurantList(List<Restaurant>? restaurantList) {
+    if (restaurantList != null) {
+      _discountedRestaurantList = [];
+      _discountedRestaurantList!.addAll(restaurantList);
+    }
+    update();
+  }
+
   _preparePopularRestaurantList(List<Restaurant>? restaurantList) {
     if (restaurantList != null) {
       _popularRestaurantList = [];
@@ -516,8 +548,28 @@ class RestaurantController extends GetxController implements GetxService {
       // In a real scenario, this would be calculated based on user's location to restaurant
       double distance = 1.0;
 
-      // Calculate delivery charge
-      double deliveryCharge = distance * perKmCharge;
+      // Get free delivery distance and subtract it from total distance
+      // Match the logic used in home screen widget - check value directly, not just status
+      double freeDeliveryDistance = 0;
+      if (restaurant.selfDeliverySystem == 1) {
+        // Restaurant has its own delivery system - check restaurant's free delivery distance
+        if (restaurant.freeDeliveryDistanceValue != null &&
+            restaurant.freeDeliveryDistanceValue! > 0) {
+          freeDeliveryDistance = restaurant.freeDeliveryDistanceValue!;
+        }
+      } else {
+        // Zone-based delivery - check config's free delivery distance (like home screen does)
+        if (Get.find<SplashController>().configModel!.freeDeliveryDistance != null &&
+            Get.find<SplashController>().configModel!.freeDeliveryDistance! > 0) {
+          freeDeliveryDistance = Get.find<SplashController>().configModel!.freeDeliveryDistance!;
+        }
+      }
+      
+      // Calculate chargeable distance (subtract free delivery distance, minimum 0)
+      double chargeableDistance = (distance - freeDeliveryDistance).clamp(0.0, double.infinity);
+
+      // Calculate delivery charge based on chargeable distance only
+      double deliveryCharge = chargeableDistance * perKmCharge;
 
       // Apply minimum charge
       if (deliveryCharge < minimumCharge) {
@@ -527,13 +579,6 @@ class RestaurantController extends GetxController implements GetxService {
       // Apply maximum charge
       if (maximumCharge != null && deliveryCharge > maximumCharge) {
         deliveryCharge = maximumCharge;
-      }
-
-      // Check for free delivery distance
-      if (restaurant.selfDeliverySystem == 0 && 
-          Get.find<SplashController>().configModel!.freeDeliveryDistance != null && 
-          Get.find<SplashController>().configModel!.freeDeliveryDistance! >= distance) {
-        deliveryCharge = 0;
       }
 
       return deliveryCharge;

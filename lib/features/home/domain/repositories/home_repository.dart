@@ -24,9 +24,24 @@ class HomeRepository implements HomeRepositoryInterface {
     switch(source) {
       case DataSourceEnum.client:
         Response response = await apiClient.getData(AppConstants.bannerUri);
+        print('=== BANNER API RESPONSE DEBUG ===');
+        print('Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+        print('Response Body Type: ${response.body.runtimeType}');
         if(response.statusCode == 200) {
+          print('Parsing response body...');
           bannerModel = BannerModel.fromJson(response.body);
+          print('BannerModel parsed - campaigns: ${bannerModel?.campaigns?.length ?? 0}, banners: ${bannerModel?.banners?.length ?? 0}');
+          if (bannerModel?.banners != null) {
+            print('Banners details:');
+            for (var i = 0; i < bannerModel!.banners!.length; i++) {
+              print('  Banner $i: id=${bannerModel.banners![i].id}, title=${bannerModel.banners![i].title}, type=${bannerModel.banners![i].type}, imageFullUrl=${bannerModel.banners![i].imageFullUrl}');
+            }
+          }
           LocalClient.organize(DataSourceEnum.client, cacheId, jsonEncode(response.body), apiClient.getHeader());
+        } else {
+          print('API returned non-200 status: ${response.statusCode}');
+          print('Error: ${response.body}');
         }
 
       case DataSourceEnum.local:

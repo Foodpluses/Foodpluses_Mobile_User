@@ -78,98 +78,91 @@ class RestaurantFoodItemWidget extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Food name with accent
-                    Row(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 3,
-                          height: 20,
-                          margin: const EdgeInsets.only(right: 8, top: 2),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            product.name ?? 'Unknown Item',
-                            style: robotoMedium.copyWith(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                              height: 1.2,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    
-                    // Description
-                    if (product.description != null && product.description!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 11),
-                        child: Text(
-                          product.description ?? '',
-                          style: robotoRegular.copyWith(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                            height: 1.3,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    if (product.description != null && product.description!.isNotEmpty)
-                      const SizedBox(height: 8),
-                    
-                    // Price section with enhanced styling
-                    Padding(
-                      padding: const EdgeInsets.only(left: 11),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Theme.of(context).primaryColor.withOpacity(0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        // Food name with accent
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (discount! > 0) ...[
-                              Text(
-                                PriceConverter.convertPrice(product.price),
-                                style: robotoRegular.copyWith(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade500,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            Icon(
-                              Icons.local_offer,
-                              size: 14,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              PriceConverter.convertPrice(product.price, discount: discount, discountType: discountType),
-                              style: robotoMedium.copyWith(
-                                fontSize: 15,
+                            Container(
+                              width: 3,
+                              height: 20,
+                              margin: const EdgeInsets.only(right: 8, top: 2),
+                              decoration: BoxDecoration(
                                 color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.w700, 
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                product.name ?? 'Unknown Item',
+                                style: robotoMedium.copyWith(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                  height: 1.2,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 6),
+                        
+                        // Description
+                        if (product.description != null && product.description!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 11),
+                            child: Text(
+                              product.description ?? '',
+                              style: robotoRegular.copyWith(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
+                    
+                    // Price section - bottom left, no background
+                    Padding(
+                      padding: const EdgeInsets.only(left: 11, top: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (discount! > 0) ...[
+                            Text(
+                              PriceConverter.convertPrice(product.price),
+                              style: robotoRegular.copyWith(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Icon(
+                            Icons.local_offer,
+                            size: 14,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            PriceConverter.convertPrice(product.price, discount: discount, discountType: discountType),
+                            style: robotoMedium.copyWith(
+                              fontSize: 15,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w700, 
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

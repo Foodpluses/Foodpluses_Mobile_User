@@ -17,6 +17,7 @@ import 'package:stackfood_multivendor/features/cart/domain/models/cart_model.dar
 import 'package:stackfood_multivendor/common/models/product_model.dart';
 import 'package:stackfood_multivendor/features/favourite/controllers/favourite_controller.dart';
 import 'package:stackfood_multivendor/features/product/controllers/product_controller.dart';
+import 'package:stackfood_multivendor/features/restaurant/controllers/restaurant_controller.dart';
 import 'package:stackfood_multivendor/helper/cart_helper.dart';
 import 'package:stackfood_multivendor/helper/date_converter.dart';
 import 'package:stackfood_multivendor/helper/price_converter.dart';
@@ -108,6 +109,9 @@ class _ProductBottomSheetWidgetState extends State<ProductBottomSheetWidget> {
         double priceWithAddonsVariation = ((price + variationPrice) * productController.quantity!) + addonsCost;
         double priceWithVariation = price + variationPrice;
         bool isAvailable = DateConverter.isAvailable(product!.availableTimeStarts, product!.availableTimeEnds);
+        
+        // Check if restaurant is closed
+        bool isRestaurantClosed = _isRestaurantClosed();
 
         // print('========check====> selectedVariations: ${productController.selectedVariations} ,\n cartSelected: ${widget.cart?.variations} \n // stock : ${productController.variationsStock}');
 
@@ -669,24 +673,26 @@ class _ProductBottomSheetWidgetState extends State<ProductBottomSheetWidget> {
                               ]),
                               const SizedBox(width: Dimensions.paddingSizeSmall),
 
-                              Expanded(
-                                child: GetBuilder<CartController>(
-                                  builder: (cartController) {
-                                    return CustomButtonWidget(
-                                      radius : Dimensions.paddingSizeDefault,
-                                      width: ResponsiveHelper.isDesktop(context) ? MediaQuery.of(context).size.width / 2.0 : null,
-                                      isLoading: cartController.isLoading,
-                                      buttonText: (!product!.scheduleOrder! && !isAvailable) ? 'not_available_now'.tr
-                                          : widget.isCampaign ? 'order_now'.tr : (widget.cart != null || productController.cartIndex != -1) ? 'update_in_cart'.tr : 'add_to_cart'.tr,
-                                      onPressed: (!product!.scheduleOrder! && !isAvailable) || (widget.cart != null && productController.checkOutOfStockVariationSelected(product?.variations) != null) ? null : () async {
+                              // Hide add to cart button when restaurant is closed
+                              if (!isRestaurantClosed)
+                                Expanded(
+                                  child: GetBuilder<CartController>(
+                                    builder: (cartController) {
+                                      return CustomButtonWidget(
+                                        radius : Dimensions.paddingSizeDefault,
+                                        width: ResponsiveHelper.isDesktop(context) ? MediaQuery.of(context).size.width / 2.0 : null,
+                                        isLoading: cartController.isLoading,
+                                        buttonText: (!product!.scheduleOrder! && !isAvailable) ? 'not_available_now'.tr
+                                            : widget.isCampaign ? 'order_now'.tr : (widget.cart != null || productController.cartIndex != -1) ? 'update_in_cart'.tr : 'add_to_cart'.tr,
+                                        onPressed: (!product!.scheduleOrder! && !isAvailable) || (widget.cart != null && productController.checkOutOfStockVariationSelected(product?.variations) != null) ? null : () async {
 
-                                        _onButtonPressed(productController, cartController, priceWithVariation, priceWithDiscount, price, discount, discountType, addOnIdList, addOnsList, priceWithAddonsVariation);
+                                          _onButtonPressed(productController, cartController, priceWithVariation, priceWithDiscount, price, discount, discountType, addOnIdList, addOnsList, priceWithAddonsVariation);
 
-                                      },
-                                    );
-                                  }
+                                        },
+                                      );
+                                    }
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
 
@@ -882,6 +888,34 @@ class _ProductBottomSheetWidgetState extends State<ProductBottomSheetWidget> {
     }
 
     return addOnsList;
+  }
+
+  // Check if restaurant is closed
+  bool _isRestaurantClosed() {
+    // Check if business is shutdown
+    bool isBusinessShutdown = Get.find<SplashController>().configModel?.businessShutdown ?? false;
+    if (isBusinessShutdown) {
+      return true;
+    }
+
+    // Check if restaurant is active (vendor closed) - use restaurantController
+    RestaurantController restaurantController = Get.find<RestaurantController>();
+    if (restaurantController.restaurant != null) {
+      if (restaurantController.restaurant!.active == false) {
+        return true;
+      }
+
+      // Check if restaurant is open based on schedules
+      bool isRestaurantOpen = restaurantController.isRestaurantOpenNow(
+        restaurantController.restaurant!.active!,
+        restaurantController.restaurant!.schedules
+      );
+      if (!isRestaurantOpen) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
 }

@@ -5,13 +5,42 @@ import 'package:stackfood_multivendor/common/widgets/custom_button_widget.dart';
 import 'package:stackfood_multivendor/common/widgets/custom_snackbar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-class CancellationDialogue extends StatelessWidget {
+
+class CancellationDialogue extends StatefulWidget {
   final int? orderId;
   const CancellationDialogue({super.key, required this.orderId});
 
   @override
+  State<CancellationDialogue> createState() => _CancellationDialogueState();
+}
+
+class _CancellationDialogueState extends State<CancellationDialogue> {
+  bool _isLoadingReasons = true;
+  bool _hasLoadedOnce = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCancelReasons();
+  }
+
+  Future<void> _loadCancelReasons() async {
+    if (_hasLoadedOnce) return; // Prevent multiple calls
+    
+    setState(() {
+      _isLoadingReasons = true;
+    });
+    
+    await Get.find<OrderController>().getOrderCancelReasons();
+    
+    setState(() {
+      _isLoadingReasons = false;
+      _hasLoadedOnce = true;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Get.find<OrderController>().getOrderCancelReasons();
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
       insetPadding: const EdgeInsets.all(30),
@@ -36,27 +65,44 @@ class CancellationDialogue extends StatelessWidget {
               ),
 
               Expanded(
-                child: orderController.orderCancelReasons != null ? orderController.orderCancelReasons!.isNotEmpty ? ListView.builder(
-                    itemCount: orderController.orderCancelReasons!.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index){
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-                        child: ListTile(
-                          onTap: (){
-                            orderController.setOrderCancelReason(orderController.orderCancelReasons![index].reason);
-                          },
-                          title: Row(
-                            children: [
-                              Icon(orderController.orderCancelReasons![index].reason == orderController.cancelReason ? Icons.radio_button_checked : Icons.radio_button_off, color: Theme.of(context).primaryColor, size: 18),
-                              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                child: _isLoadingReasons 
+                  ? const Center(child: CircularProgressIndicator())
+                  : orderController.orderCancelReasons != null && orderController.orderCancelReasons!.isNotEmpty 
+                    ? ListView.builder(
+                        itemCount: orderController.orderCancelReasons!.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index){
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                            child: ListTile(
+                              onTap: (){
+                                orderController.setOrderCancelReason(orderController.orderCancelReasons![index].reason);
+                              },
+                              title: Row(
+                                children: [
+                                  Icon(orderController.orderCancelReasons![index].reason == orderController.cancelReason ? Icons.radio_button_checked : Icons.radio_button_off, color: Theme.of(context).primaryColor, size: 18),
+                                  const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                              Flexible(child: Text(orderController.orderCancelReasons![index].reason!, style: robotoRegular, maxLines: 3, overflow: TextOverflow.ellipsis)),
+                                  Flexible(child: Text(orderController.orderCancelReasons![index].reason!, style: robotoRegular, maxLines: 3, overflow: TextOverflow.ellipsis)),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      ) 
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.info_outline, size: 48, color: Theme.of(context).disabledColor),
+                              const SizedBox(height: Dimensions.paddingSizeDefault),
+                              Text('no_reasons_available'.tr, style: robotoMedium.copyWith(color: Theme.of(context).disabledColor)),
                             ],
                           ),
                         ),
-                      );
-                    }) : Center(child: Text('no_reasons_available'.tr)) : const Center(child: CircularProgressIndicator()),
+                      ),
               ),
               const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
@@ -74,9 +120,9 @@ class CancellationDialogue extends StatelessWidget {
                     onPressed: (){
                       if(orderController.cancelReason != '' && orderController.cancelReason != null){
 
-                        orderController.cancelOrder(orderId, orderController.cancelReason).then((success) {
+                        orderController.cancelOrder(widget.orderId, orderController.cancelReason).then((success) {
                           if(success){
-                            orderController.trackOrder(orderId.toString(), null, true);
+                            orderController.trackOrder(widget.orderId.toString(), null, true);
                           }
                         });
 

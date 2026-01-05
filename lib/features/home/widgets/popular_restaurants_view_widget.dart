@@ -24,53 +24,68 @@ import 'package:stackfood_multivendor/helper/price_converter.dart';
 import 'package:stackfood_multivendor/features/coupon/controllers/coupon_controller.dart';
 import 'package:stackfood_multivendor/features/profile/controllers/profile_controller.dart';
 
-class PopularRestaurantsViewWidget extends StatelessWidget {
+class PopularRestaurantsViewWidget extends StatefulWidget {
   final bool isRecentlyViewed;
   const PopularRestaurantsViewWidget({super.key, this.isRecentlyViewed = false});
 
   @override
+  State<PopularRestaurantsViewWidget> createState() => _PopularRestaurantsViewWidgetState();
+}
+
+class _PopularRestaurantsViewWidgetState extends State<PopularRestaurantsViewWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // Load coupon list once when widget is created, not in build method
+    final couponController = Get.find<CouponController>();
+    if(couponController.couponList == null) {
+      couponController.ensureCouponListLoaded();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GetBuilder<CouponController>(builder: (couponCtrlOuter) {
-      if(couponCtrlOuter.couponList == null) {
-        couponCtrlOuter.ensureCouponListLoaded();
-      }
       return GetBuilder<RestaurantController>(builder: (restController) {
-      List<Restaurant>? restaurantList = isRecentlyViewed ? restController.recentlyViewedRestaurantList : restController.popularRestaurantList;
+      List<Restaurant>? restaurantList = widget.isRecentlyViewed ? restController.recentlyViewedRestaurantList : restController.popularRestaurantList;
       return (restaurantList != null && restaurantList.isEmpty) ? const SizedBox() : Padding(
-        padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeLarge),
+        padding: EdgeInsets.only(top: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeDefault, bottom: 4),
         child: SizedBox(
           width: Dimensions.webMaxWidth,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             ResponsiveHelper.isDesktop(context) ? Padding(
               padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault, left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(isRecentlyViewed ? 'recently_viewed_restaurants'.tr : 'Trending Now 🔥',
+                Text(widget.isRecentlyViewed ? 'recently_viewed_restaurants'.tr : 'Trending Now 🔥',
                   style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, fontWeight: FontWeight.w600),
                 ),
                 ArrowIconButtonWidget(onTap: () {
-                  Get.toNamed(RouteHelper.getAllRestaurantRoute(isRecentlyViewed ? 'recently_viewed' : 'popular'));
+                  Get.toNamed(RouteHelper.getAllRestaurantRoute(widget.isRecentlyViewed ? 'recently_viewed' : 'popular'));
                 }),
               ]),
             ) : Padding(
               padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault, right: Dimensions.paddingSizeDefault, bottom: Dimensions.paddingSizeDefault),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(isRecentlyViewed ? 'recently_viewed_restaurants'.tr : 'Trending Now 🔥',
+                Text(widget.isRecentlyViewed ? 'recently_viewed_restaurants'.tr : 'Trending Now 🔥',
                   style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, fontWeight: FontWeight.w600),
                 ),
                 ArrowIconButtonWidget(onTap: () {
-                  Get.toNamed(RouteHelper.getAllRestaurantRoute(isRecentlyViewed ? 'recently_viewed' : 'popular'));
+                  Get.toNamed(RouteHelper.getAllRestaurantRoute(widget.isRecentlyViewed ? 'recently_viewed' : 'popular'));
                 }),
               ]),
             ),
           restaurantList != null ? SizedBox(
-              height: ResponsiveHelper.isMobile(context) ? 180 : 200,
+              height: ResponsiveHelper.isMobile(context) ? 160 : 180,
               child: ListView.builder(
                 itemCount: restaurantList.length,
                 padding: EdgeInsets.only(right: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeDefault : 0),
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) {
-                  bool isAvailable = restaurantList[index].open == 1 && restaurantList[index].active!;
+                  // Check business shutdown status
+                  bool isBusinessShutdown = Get.find<SplashController>().configModel?.businessShutdown ?? false;
+                  // Check restaurant availability (open status, active status, and business shutdown)
+                  bool isAvailable = !isBusinessShutdown && restaurantList[index].open == 1 && restaurantList[index].active!;
                   String characteristics = '';
                   if(restaurantList[index].characteristics != null) {
                     for (var v in restaurantList[index].characteristics!) {
@@ -80,15 +95,16 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                   return Padding(
                     padding: EdgeInsets.only(left: (ResponsiveHelper.isDesktop(context) && index == 0 && Get.find<LocalizationController>().isLtr) ? 0 : Dimensions.paddingSizeDefault),
                     child: Container(
-                      height: ResponsiveHelper.isMobile(context) ? 170 : 190,
-                      width: ResponsiveHelper.isMobile(context) ? 210 : 400,
+                      height: ResponsiveHelper.isMobile(context) ? 160 : 180,
+                      width: ResponsiveHelper.isMobile(context) ? 230 : 400,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.black.withOpacity(0.05)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 8,
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 10,
                             offset: const Offset(0, 2),
                             spreadRadius: 0,
                           ),
@@ -103,17 +119,17 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Image Section - With discount/free delivery tags
-                            Expanded(
-                              flex: 3,
-                              child: Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
-                                  ),
+                            // Fixed image height to minimize bottom whitespace
+                            Container(
+                              height: ResponsiveHelper.isMobile(context) ? 110 : 125,
+                              width: double.infinity,
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
                                 ),
-                                child: Stack(
+                              ),
+                              child: Stack(
                                   children: [
                                     // Food Image
                                     Positioned.fill(
@@ -134,15 +150,32 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                     GetBuilder<CouponController>(builder: (couponCtrl) {
                                       final discount = restaurantList[index].discount;
                                       if (discount == null || (discount.discount == null)) {
-                                        // Fallback: show first-order free delivery badge when applicable
+                                        // Fallback: show first-order coupon badge when applicable
                                         final profile = Get.find<ProfileController>().userInfoModel;
                                         final isFirstOrder = (profile?.orderCount ?? 0) == 0;
                                         if(couponCtrl.couponList == null) {
-                                          couponCtrl.ensureCouponListLoaded();
+                                          // Don't call ensureCouponListLoaded here - it's already called in initState
+                                          // This prevents infinite rebuild loops
                                           return const SizedBox();
                                         }
-                                        final hasFirstOrder = couponCtrl.firstOrderCoupon != null;
-                                        if(isFirstOrder && hasFirstOrder) {
+                                        final firstOrderCoupon = couponCtrl.firstOrderCoupon;
+                                        if(isFirstOrder && firstOrderCoupon != null) {
+                                          // Check if it's free delivery or discount
+                                          final isFreeDelivery = couponCtrl.hasFirstOrderFreeDelivery;
+                                          String badgeText;
+                                          if (isFreeDelivery) {
+                                            badgeText = 'Free delivery on your first order';
+                                          } else {
+                                            // It's a discount coupon - show the discount value
+                                            final discountType = (firstOrderCoupon.discountType ?? '').toLowerCase();
+                                            if (discountType == 'percent') {
+                                              badgeText = '${firstOrderCoupon.discount?.toStringAsFixed(0) ?? '0'}% off your first order';
+                                            } else {
+                                              // Amount discount
+                                              badgeText = '${PriceConverter.convertPrice(firstOrderCoupon.discount ?? 0)} off your first order';
+                                            }
+                                          }
+                                          
                                           return Positioned(
                                             bottom: 8, right: 8,
                                             child: Container(
@@ -154,10 +187,10 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                                   BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 1)),
                                                 ],
                                               ),
-                                              child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                                                Icon(Icons.card_giftcard, size: 10, color: Colors.white),
-                                                SizedBox(width: 2),
-                                                Text('Free delivery on your first order', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w600)),
+                                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                                const Icon(Icons.card_giftcard, size: 10, color: Colors.white),
+                                                const SizedBox(width: 2),
+                                                Text(badgeText, style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w600)),
                                               ]),
                                             ),
                                           );
@@ -178,8 +211,25 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                       if (!isActive) {
                                         final profile = Get.find<ProfileController>().userInfoModel;
                                         final isFirstOrder = (profile?.orderCount ?? 0) == 0;
-                                        final hasFirstOrder = Get.find<CouponController>().firstOrderCoupon != null;
-                                        if(isFirstOrder && hasFirstOrder) {
+                                        final couponCtrl = Get.find<CouponController>();
+                                        final firstOrderCoupon = couponCtrl.firstOrderCoupon;
+                                        if(isFirstOrder && firstOrderCoupon != null) {
+                                          // Check if it's free delivery or discount
+                                          final isFreeDelivery = couponCtrl.hasFirstOrderFreeDelivery;
+                                          String badgeText;
+                                          if (isFreeDelivery) {
+                                            badgeText = 'Free delivery on your first order';
+                                          } else {
+                                            // It's a discount coupon - show the discount value
+                                            final discountType = (firstOrderCoupon.discountType ?? '').toLowerCase();
+                                            if (discountType == 'percent') {
+                                              badgeText = '${firstOrderCoupon.discount?.toStringAsFixed(0) ?? '0'}% off your first order';
+                                            } else {
+                                              // Amount discount
+                                              badgeText = '${PriceConverter.convertPrice(firstOrderCoupon.discount ?? 0)} off your first order';
+                                            }
+                                          }
+                                          
                                           return Positioned(
                                             bottom: 8, right: 8,
                                             child: Container(
@@ -191,10 +241,10 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                                   BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 1)),
                                                 ],
                                               ),
-                                              child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                                                Icon(Icons.card_giftcard, size: 10, color: Colors.white),
-                                                SizedBox(width: 2),
-                                                Text('Free delivery on your first order', style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w600)),
+                                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                                const Icon(Icons.card_giftcard, size: 10, color: Colors.white),
+                                                const SizedBox(width: 2),
+                                                Text(badgeText, style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w600)),
                                               ]),
                                             ),
                                           );
@@ -308,22 +358,19 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            ),
-                            
-                            // Restaurant Information Section - Closer spacing
-                            Expanded(
-                              flex: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
+
+                            // Restaurant Information Section - compact
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                     // Restaurant Name
                                     Text(
                                       restaurantList[index].name!,
                                       style: robotoMedium.copyWith(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: Colors.grey.shade800,
                                       ),
@@ -331,7 +378,7 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 4),
                                     
                                     // Info Row - Clean with delivery info
                                     Row(
@@ -341,7 +388,7 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                         const SizedBox(width: 3),
                                         Text(
                                           '${restaurantList[index].deliveryTime}',
-                                          style: robotoRegular.copyWith(fontSize: 9, color: Colors.grey.shade700),
+                                          style: robotoRegular.copyWith(fontSize: 10, color: Colors.grey.shade700),
                                         ),
                                         
                                         const SizedBox(width: 8),
@@ -351,7 +398,7 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                         const SizedBox(width: 2),
                                         Text(
                                           restaurantList[index].avgRating!.toStringAsFixed(1),
-                                          style: robotoRegular.copyWith(fontSize: 9, color: Colors.grey.shade700),
+                                          style: robotoRegular.copyWith(fontSize: 10, color: Colors.grey.shade700),
                                         ),
                                         
                                         const Spacer(),
@@ -390,14 +437,13 @@ class PopularRestaurantsViewWidget extends StatelessWidget {
                                             children: [
                                               Icon(Icons.local_shipping, size: 9, color: Colors.grey.shade600),
                                               const SizedBox(width: 2),
-                                              Text(badgeText, style: robotoRegular.copyWith(fontSize: 8, color: Colors.grey.shade700)),
+                                              Text(badgeText, style: robotoRegular.copyWith(fontSize: 10, color: Colors.grey.shade700)),
                                             ],
                                           ) : const SizedBox();
                                         }),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                ],
                               ),
                             ),
                           ],

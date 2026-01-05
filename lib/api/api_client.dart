@@ -60,6 +60,23 @@ class ApiClient extends GetxService {
 
   Future<Response> getData(String uri, {Map<String, dynamic>? query, Map<String, String>? headers, bool handleError = true, bool showToaster = false}) async {
     try {
+      // Refresh token from SharedPreferences before making API call to ensure it's up-to-date
+      // This is especially important on Samsung devices where lifecycle events can cause token to be stale
+      final currentToken = sharedPreferences.getString(AppConstants.token);
+      if(currentToken != null && currentToken != token) {
+        token = currentToken;
+        // Update headers with latest token
+        AddressModel? addressModel;
+        try {
+          addressModel = AddressModel.fromJson(jsonDecode(sharedPreferences.getString(AppConstants.userAddress) ?? '{}'));
+        }catch(_) {}
+        updateHeader(
+          token, addressModel?.zoneIds,
+          sharedPreferences.getString(AppConstants.languageCode), addressModel?.latitude,
+          addressModel?.longitude
+        );
+      }
+      
       if(kDebugMode) {
         debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
       }

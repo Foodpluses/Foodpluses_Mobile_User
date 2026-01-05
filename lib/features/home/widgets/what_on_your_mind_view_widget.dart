@@ -128,7 +128,7 @@ class WebWhatOnYourMindViewShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: ResponsiveHelper.isMobile(context) ? 100 : 140,
+      height: ResponsiveHelper.isMobile(context) ? 96 : 132,
       child: ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
@@ -139,28 +139,28 @@ class WebWhatOnYourMindViewShimmer extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeDefault, top: Dimensions.paddingSizeSmall),
             child: Container(
-              width: ResponsiveHelper.isMobile(context) ? 65 : 90,
-              height: ResponsiveHelper.isMobile(context) ? 85 : 120,
+              width: ResponsiveHelper.isMobile(context) ? 62 : 88,
+              height: ResponsiveHelper.isMobile(context) ? 82 : 116,
               padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
               margin: EdgeInsets.only(top: ResponsiveHelper.isMobile(context) ? 0 : Dimensions.paddingSizeSmall),
               child: Column(children: [
 
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),  
                   child: Shimmer(
                     child: Container(
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusDefault), color: Theme.of(context).shadowColor),
-                      height: ResponsiveHelper.isMobile(context) ? 62 : 88, width: ResponsiveHelper.isMobile(context) ? 62 : 88,
+                      height: ResponsiveHelper.isMobile(context) ? 58 : 84, width: ResponsiveHelper.isMobile(context) ? 58 : 84,
                     ),
                   ),
                 ),
-                SizedBox(height: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeDefault),
+                SizedBox(height: ResponsiveHelper.isMobile(context) ? Dimensions.paddingSizeSmall : Dimensions.paddingSizeSmall),
 
                 ClipRRect(
                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   child: Shimmer(
                     child: Container(
-                      height: ResponsiveHelper.isMobile(context) ? 10 : 12, width: 60,
+                      height: ResponsiveHelper.isMobile(context) ? 8 : 10, width: 56,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusSmall), color: Theme.of(context).shadowColor),
                     ),
                   ),

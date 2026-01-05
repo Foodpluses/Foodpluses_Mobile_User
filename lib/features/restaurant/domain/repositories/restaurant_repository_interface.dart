@@ -9,7 +9,7 @@ abstract class RestaurantRepositoryInterface extends RepositoryInterface {
   Future<Restaurant?> get(String? id, {String slug = '', String? languageCode});
   @override
   Future<RestaurantModel?> getList({int? offset, String? filterBy, int? topRated, int? discount, int? veg, int? nonVeg, bool fromMap = false, DataSourceEnum? source});
-  Future<List<Restaurant>?> getRestaurantList({String? type, bool isRecentlyViewed = false, bool isOrderAgain = false, bool isPopular = false, bool isLatest = false, DataSourceEnum? source});
+  Future<List<Restaurant>?> getRestaurantList({String? type, bool isRecentlyViewed = false, bool isOrderAgain = false, bool isPopular = false, bool isLatest = false, bool isDiscounted = false, DataSourceEnum? source});
   Future<RecommendedProductModel?> getRestaurantRecommendedItemList(int? restaurantId);
   Future<List<Product>?> getCartRestaurantSuggestedItemList(int? restaurantID);
   Future<ProductModel?> getRestaurantProductList(int? restaurantID, int offset, int? categoryID, String type);

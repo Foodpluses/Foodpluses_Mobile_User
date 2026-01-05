@@ -40,6 +40,7 @@ class PlaceOrderBodyModel {
   int? _isBuyNow;
   String? _guestEmail;
   double? _extraPackagingAmount;
+  double? _deliveryCharge;
 
   PlaceOrderBodyModel({
     required List<OnlineCart> cart,
@@ -79,6 +80,7 @@ class PlaceOrderBodyModel {
     required int isBuyNow,
     required String? guestEmail,
     required double extraPackagingAmount,
+    required double? deliveryCharge,
   }) {
     _cart = cart;
     _couponDiscountAmount = couponDiscountAmount;
@@ -117,6 +119,7 @@ class PlaceOrderBodyModel {
     _isBuyNow = isBuyNow;
     _guestEmail = guestEmail;
     _extraPackagingAmount = extraPackagingAmount;
+    _deliveryCharge = deliveryCharge;
   }
 
   List<OnlineCart>? get cart => _cart;
@@ -155,6 +158,7 @@ class PlaceOrderBodyModel {
   int? get isBuyNow => _isBuyNow;
   String? get guestEmail => _guestEmail;
   double? get extraPackagingAmount => _extraPackagingAmount;
+  double? get deliveryCharge => _deliveryCharge;
 
   PlaceOrderBodyModel.fromJson(Map<String, dynamic> json) {
     if (json['cart'] != null) {
@@ -210,6 +214,7 @@ class PlaceOrderBodyModel {
     _isBuyNow = int.parse(json['is_buy_now'].toString());
     _guestEmail = json['contact_person_email'];
     _extraPackagingAmount = json['extra_packaging_amount'] != null ? double.parse(json['extra_packaging_amount'].toString()) : null;
+    _deliveryCharge = json['delivery_charge'] != null ? double.parse(json['delivery_charge'].toString()) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -261,6 +266,9 @@ class PlaceOrderBodyModel {
       data['contact_person_email'] = _guestEmail!;
     }
     data['extra_packaging_amount'] = _extraPackagingAmount.toString();
+    if(_deliveryCharge != null) {
+      data['delivery_charge'] = _deliveryCharge!.toString();
+    }
     return data;
   }
 }

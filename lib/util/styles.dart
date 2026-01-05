@@ -21,7 +21,7 @@ final robotoBold = TextStyle(
 );
 
 final robotoBlack = TextStyle(
-  fontFamily: 'Roboto',
+  fontFamily: AppConstants.fontFamily,
   fontWeight: FontWeight.w900,
   fontSize: Dimensions.fontSizeDefault,
 );

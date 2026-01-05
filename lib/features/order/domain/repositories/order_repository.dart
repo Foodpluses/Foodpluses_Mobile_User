@@ -38,8 +38,13 @@ class OrderRepository implements OrderRepositoryInterface {
     if (response.statusCode == 200) {
       OrderCancellationBody orderCancellationBody = OrderCancellationBody.fromJson(response.body);
       orderCancelReasons = [];
-      for (var element in orderCancellationBody.reasons!) {
-        orderCancelReasons.add(element);
+      if (orderCancellationBody.reasons != null) {
+        // Filter only active reasons (status == 1)
+        for (var element in orderCancellationBody.reasons!) {
+          if (element.status == 1) {
+            orderCancelReasons.add(element);
+          }
+        }
       }
     }
     return orderCancelReasons;

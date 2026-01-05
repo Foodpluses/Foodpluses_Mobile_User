@@ -116,17 +116,45 @@ class RestaurantRepository implements RestaurantRepositoryInterface {
   }
 
   @override
-  Future<List<Restaurant>?> getRestaurantList({String? type, bool isRecentlyViewed = false, bool isOrderAgain = false, bool isPopular = false, bool isLatest = false, DataSourceEnum? source}) async {
+  Future<List<Restaurant>?> getRestaurantList({String? type, bool isRecentlyViewed = false, bool isOrderAgain = false, bool isPopular = false, bool isLatest = false, bool isDiscounted = false, DataSourceEnum? source}) async {
     if(isRecentlyViewed) {
       return _getRecentlyViewedRestaurantList(type!, source: source);
     } else if(isOrderAgain) {
       return _getOrderAgainRestaurantList(source: source);
     } else if(isPopular) {
       return _getPopularRestaurantList(type!, source: source);
+    } else if(isDiscounted) {
+      return _getDiscountedRestaurantList(type!, source: source);
     } else if(isLatest) {
       return _getLatestRestaurantList(type!, source: source);
     }
     return null;
+  }
+
+  Future<List<Restaurant>?> _getDiscountedRestaurantList(String type, {DataSourceEnum? source}) async {
+    List<Restaurant>? discountedRestaurantList;
+    String cacheId = AppConstants.discountedRestaurantUri;
+
+    switch(source!){
+      case DataSourceEnum.client:
+        Response response = await apiClient.getData('${AppConstants.discountedRestaurantUri}?type=$type');
+        if(response.statusCode == 200){
+          discountedRestaurantList = [];
+          response.body.forEach((restaurant) {
+            discountedRestaurantList!.add(Restaurant.fromJson(restaurant));
+          });
+          LocalClient.organize(DataSourceEnum.client, cacheId, jsonEncode(response.body), apiClient.getHeader());
+        }
+      case DataSourceEnum.local:
+        String? cacheResponseData = await LocalClient.organize(DataSourceEnum.local, cacheId, null, null);
+        if(cacheResponseData != null) {
+          discountedRestaurantList = [];
+          jsonDecode(cacheResponseData).forEach((restaurant) {
+            discountedRestaurantList!.add(Restaurant.fromJson(restaurant));
+          });
+        }
+    }
+    return discountedRestaurantList;
   }
 
   Future<List<Restaurant>?> _getLatestRestaurantList(String type, {DataSourceEnum? source}) async {

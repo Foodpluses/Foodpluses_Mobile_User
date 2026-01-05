@@ -61,6 +61,13 @@ class ProfileRepository implements ProfileRepositoryInterface {
 
   @override
   Future<UserInfoModel?> get(String? id) async {
+    // Check if token exists before making API call to prevent null Bearer token
+    final token = apiClient.sharedPreferences.getString(AppConstants.token);
+    if (token == null || token.isEmpty) {
+      // No token available, skip API call
+      return null;
+    }
+    
     UserInfoModel? userInfoModel;
     Response response = await apiClient.getData(AppConstants.customerInfoUri);
     if (response.statusCode == 200) {

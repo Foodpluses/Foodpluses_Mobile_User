@@ -448,8 +448,29 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     double? maximumCharge = restaurant.selfDeliverySystem == 1 ? restaurant.maximumShippingCharge
         : zoneData.maximumShippingCharge;
 
-    double deliveryCharge = checkoutController.distance! * perKmCharge;
-    double charge = checkoutController.distance! * perKmCharge;
+    // Get free delivery distance and subtract it from total distance
+    // Match the logic used in home screen widget - check value directly, not just status
+    double freeDeliveryDistance = 0;
+    if (restaurant.selfDeliverySystem == 1) {
+      // Restaurant has its own delivery system - check restaurant's free delivery distance
+      if (restaurant.freeDeliveryDistanceValue != null &&
+          restaurant.freeDeliveryDistanceValue! > 0) {
+        freeDeliveryDistance = restaurant.freeDeliveryDistanceValue!;
+      }
+    } else {
+      // Zone-based delivery - check config's free delivery distance (like home screen does)
+      if (Get.find<SplashController>().configModel!.freeDeliveryDistance != null &&
+          Get.find<SplashController>().configModel!.freeDeliveryDistance! > 0) {
+        freeDeliveryDistance = Get.find<SplashController>().configModel!.freeDeliveryDistance!;
+      }
+    }
+    
+    // Calculate chargeable distance (subtract free delivery distance, minimum 0)
+    double chargeableDistance = (checkoutController.distance! - freeDeliveryDistance).clamp(0.0, double.infinity);
+    
+    // Calculate delivery charge based on chargeable distance only
+    double deliveryCharge = chargeableDistance * perKmCharge;
+    double charge = chargeableDistance * perKmCharge;
 
     if(deliveryCharge < minimumCharge) {
       deliveryCharge = minimumCharge;
@@ -474,15 +495,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
     }
 
-    if(restaurant.selfDeliverySystem == 0 && Get.find<SplashController>().configModel!.freeDeliveryDistance != null && Get.find<SplashController>().configModel!.freeDeliveryDistance! >= checkoutController.distance!){
-      deliveryCharge = 0;
-      charge = 0;
-    }
-
-    if(restaurant.selfDeliverySystem == 1 && restaurant.freeDeliveryDistanceStatus! && restaurant.freeDeliveryDistanceValue! >= checkoutController.distance!){
-      deliveryCharge = 0;
-      charge = 0;
-    }
+    // Free delivery distance is now handled above (subtracted before calculation)
+    // No need to check here again as it's already factored into chargeableDistance
 
     double? maxCodOrderAmount;
     if(zoneData.maxCodOrderAmount != null) {

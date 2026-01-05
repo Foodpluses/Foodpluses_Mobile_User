@@ -1056,7 +1056,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
       if (address!.zoneData != null && address.zoneData!.isNotEmpty) {
         try {
           zoneData = address.zoneData!.firstWhere(
-            (data) => data.id == restaurant.zoneId,      
+            (data) => data.id == restaurant.zoneId,
           );
         } catch (e) {
           // Restaurant's zone not found in address zone data - use first available zone
@@ -1103,11 +1103,34 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
         return 0;
       }
       
-      double deliveryCharge = distance * perKmCharge;
+      // Step 1a: Get free delivery distance and subtract it from total distance
+      // Match the logic used in home screen widget - check value directly, not just status
+      double freeDeliveryDistance = 0;
+      if (restaurant.selfDeliverySystem == 1) {
+        // Restaurant has its own delivery system - check restaurant's free delivery distance
+        if (restaurant.freeDeliveryDistanceValue != null &&
+            restaurant.freeDeliveryDistanceValue! > 0) {
+          freeDeliveryDistance = restaurant.freeDeliveryDistanceValue!;
+        }
+      } else {
+        // Zone-based delivery - check config's free delivery distance (like home screen does)
+        if (Get.find<SplashController>().configModel!.freeDeliveryDistance != null &&
+            Get.find<SplashController>().configModel!.freeDeliveryDistance! > 0) {
+          freeDeliveryDistance = Get.find<SplashController>().configModel!.freeDeliveryDistance!;
+        }
+      }
+      
+      // Calculate chargeable distance (subtract free delivery distance, minimum 0)
+      double chargeableDistance = (distance - freeDeliveryDistance).clamp(0.0, double.infinity);
+      
+      // Calculate delivery charge based on chargeable distance only
+      double deliveryCharge = chargeableDistance * perKmCharge;
       
       // Debug: Log the calculation values
       print('🔍 Delivery Charge Calculation:');
-      print('   Distance: $distance km');
+      print('   Total Distance: $distance km');
+      print('   Free Delivery Distance: $freeDeliveryDistance km');
+      print('   Chargeable Distance: $chargeableDistance km');
       print('   Per KM Charge: $perKmCharge');
       print('   Calculated Charge: $deliveryCharge');
       print('   Minimum Charge: $minimumCharge');
@@ -1136,20 +1159,8 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
         deliveryCharge = deliveryCharge + (deliveryCharge * (zoneData.increasedDeliveryFee! / 100));
       }
 
-      // Step 6: Check free delivery distance (zone-based free delivery)
-      if (restaurant.selfDeliverySystem == 0 && 
-          Get.find<SplashController>().configModel!.freeDeliveryDistance != null && 
-          checkoutController.distance! <= Get.find<SplashController>().configModel!.freeDeliveryDistance!) {
-        deliveryCharge = 0;
-      }
-
-      // Step 7: Check restaurant's own free delivery distance
-      if (restaurant.selfDeliverySystem == 1 && 
-          restaurant.freeDeliveryDistanceStatus == true && 
-          restaurant.freeDeliveryDistanceValue != null &&
-          checkoutController.distance! <= restaurant.freeDeliveryDistanceValue!) {
-        deliveryCharge = 0;
-      }
+      // Step 6: Free delivery distance is now handled in Step 1a (subtracted before calculation)
+      // No need to check here again as it's already factored into chargeableDistance
 
       // Step 8: Check free delivery based on order amount (Free delivery over)
       double orderAmount = (cartController.itemPrice - cartController.itemDiscountPrice) + 
@@ -1585,6 +1596,11 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
   Widget _buildPaymentMethodSection() {
     return GetBuilder<CheckoutController>(
       builder: (checkoutController) {
+        final splash = Get.find<SplashController>().configModel;
+        final bool isCodActive = (splash?.cashOnDelivery == true) || (splash?.cashOnDelivery == 1);
+        final bool isDigitalActive = (splash?.digitalPayment == true) || (splash?.digitalPayment == 1);
+        final bool isOfflineActive = (splash?.offlinePaymentStatus == true) || (splash?.offlinePaymentStatus == 1);
+        final bool isWalletActiveLocal = (splash?.customerWalletStatus == 1) || (splash?.customerWalletStatus == true);
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1623,7 +1639,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
               const SizedBox(height: 16),
               
               // Payment options
-              if (_isCashOnDeliveryActive ?? false)
+              if (isCodActive)
                 _buildPaymentOption(
                   'Cash on Delivery', 
                   Icons.money, 
@@ -1631,9 +1647,9 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                   () => checkoutController.setPaymentMethod(0),
                 ),
               
-              if (_isCashOnDeliveryActive ?? false) const SizedBox(height: 12),
+              if (isCodActive) const SizedBox(height: 12),
               
-              if (_isWalletActive)
+              if (isWalletActiveLocal)
                 _buildPaymentOption(
                   'Wallet Payment', 
                   Icons.account_balance_wallet, 
@@ -1642,9 +1658,9 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                   walletBalance: Get.find<ProfileController>().userInfoModel?.walletBalance ?? 0,
                 ),
               
-              if (_isWalletActive) const SizedBox(height: 12),
+              if (isWalletActiveLocal) const SizedBox(height: 12),
               
-              if (_isDigitalPaymentActive ?? false)
+              if (isDigitalActive)
                 _buildPaymentOption(
                   'Digital Payment', 
                   Icons.credit_card, 
@@ -1652,7 +1668,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
                   () => _showDigitalPaymentOptions(checkoutController),
                 ),
               
-              if (_isOfflinePaymentActive) ...[
+              if (isOfflineActive) ...[
                 const SizedBox(height: 12),
                 _buildPaymentOption(
                   'Offline Payment', 
@@ -1725,13 +1741,18 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
   }
 
   void _showDigitalPaymentOptions(CheckoutController checkoutController) {
+    final splash = Get.find<SplashController>().configModel;
+    final bool isCodActive = (splash?.cashOnDelivery == true) || (splash?.cashOnDelivery == 1);
+    final bool isDigitalActive = (splash?.digitalPayment == true) || (splash?.digitalPayment == 1);
+    final bool isOfflineActive = (splash?.offlinePaymentStatus == true) || (splash?.offlinePaymentStatus == 1);
+    final bool isWalletActiveLocal = (splash?.customerWalletStatus == 1) || (splash?.customerWalletStatus == true);
     if(ResponsiveHelper.isDesktop(context)){
       Get.dialog(Dialog(backgroundColor: Colors.transparent, child: PaymentMethodBottomSheet(
-        isCashOnDeliveryActive: _isCashOnDeliveryActive ?? false, 
-        isDigitalPaymentActive: _isDigitalPaymentActive ?? false,
-        isWalletActive: _isWalletActive, 
+        isCashOnDeliveryActive: isCodActive, 
+        isDigitalPaymentActive: isDigitalActive,
+        isWalletActive: isWalletActiveLocal, 
         totalPrice: Get.find<CartController>().subTotal, 
-        isOfflinePaymentActive: _isOfflinePaymentActive,
+        isOfflinePaymentActive: isOfflineActive,
       )));
     } else {
       showModalBottomSheet(
@@ -1739,11 +1760,11 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
         isScrollControlled: true, 
         backgroundColor: Colors.transparent,
         builder: (con) => PaymentMethodBottomSheet(
-          isCashOnDeliveryActive: _isCashOnDeliveryActive ?? false, 
-          isDigitalPaymentActive: _isDigitalPaymentActive ?? false,
-          isWalletActive: _isWalletActive, 
+          isCashOnDeliveryActive: isCodActive, 
+          isDigitalPaymentActive: isDigitalActive,
+          isWalletActive: isWalletActiveLocal, 
           totalPrice: Get.find<CartController>().subTotal, 
-          isOfflinePaymentActive: _isOfflinePaymentActive,
+          isOfflinePaymentActive: isOfflineActive,
         ),
       );
     }
@@ -2674,6 +2695,7 @@ class _CombinedCartCheckoutScreenState extends State<CombinedCartCheckoutScreen>
       isBuyNow: 0, 
       guestEmail: isGuestLogIn ? finalAddress.email : null,
       extraPackagingAmount: 0, // Will be calculated properly
+      deliveryCharge: _calculateDeliveryCharge(checkoutController, cartController),
     );
   }
 

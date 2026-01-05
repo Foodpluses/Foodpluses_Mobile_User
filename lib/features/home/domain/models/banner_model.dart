@@ -5,8 +5,10 @@ import 'package:stackfood_multivendor/common/models/restaurant_model.dart';
 class BannerModel {
   List<BasicCampaignModel>? campaigns;
   List<Banner>? banners;
+  List<Banner>? topBanners;
+  List<Banner>? middleBanners;
 
-  BannerModel({this.campaigns, this.banners});
+  BannerModel({this.campaigns, this.banners, this.topBanners, this.middleBanners});
 
   BannerModel.fromJson(Map<String, dynamic> json) {
     if (json['campaigns'] != null) {
@@ -21,6 +23,18 @@ class BannerModel {
         banners!.add(Banner.fromJson(v));
       });
     }
+    if (json['top_banners'] != null) {
+      topBanners = [];
+      json['top_banners'].forEach((v) {
+        topBanners!.add(Banner.fromJson(v));
+      });
+    }
+    if (json['middle_banners'] != null) {
+      middleBanners = [];
+      json['middle_banners'].forEach((v) {
+        middleBanners!.add(Banner.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -30,6 +44,12 @@ class BannerModel {
     }
     if (banners != null) {
       data['banners'] = banners!.map((v) => v.toJson()).toList();
+    }
+    if (topBanners != null) {
+      data['top_banners'] = topBanners!.map((v) => v.toJson()).toList();
+    }
+    if (middleBanners != null) {
+      data['middle_banners'] = middleBanners!.map((v) => v.toJson()).toList();
     }
     return data;
   }

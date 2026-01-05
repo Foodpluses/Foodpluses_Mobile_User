@@ -128,10 +128,10 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> with WidgetsBind
                 schedules.add(DateConverter.convertTimeToTime(orderController.schedules![0].time!));
               }
             }
-            if(order.orderType == 'delivery') {
-              deliveryCharge = order.deliveryCharge;
-              dmTips = order.dmTips;
-            }
+            // Get delivery charge from order - it should be stored correctly from backend
+            // Always get delivery charge regardless of order type, as it might be set for take_away orders too
+            deliveryCharge = order.deliveryCharge ?? 0;
+            dmTips = order.dmTips ?? 0;
             couponDiscount = order.couponDiscountAmount;
             discount = order.restaurantDiscountAmount;
             tax = order.totalTaxAmount;
@@ -157,7 +157,7 @@ class OrderDetailsScreenState extends State<OrderDetailsScreen> with WidgetsBind
             }
           }
           double subTotal = itemsPrice + addOns;
-          double total = itemsPrice + addOns - discount! + (taxIncluded! ? 0 : tax!) + deliveryCharge! - couponDiscount! + dmTips! + additionalCharge + extraPackagingCharge - referrerBonusAmount;
+          double total = itemsPrice + addOns - discount! + (taxIncluded! ? 0 : tax!) + (deliveryCharge ?? 0) - couponDiscount! + (dmTips ?? 0) + additionalCharge + extraPackagingCharge - referrerBonusAmount;
 
         return Scaffold(
             appBar: (subscription || isDineIn) && !ResponsiveHelper.isDesktop(context) ? AppBar(

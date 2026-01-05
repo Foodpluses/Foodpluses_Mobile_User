@@ -356,6 +356,7 @@ class OrderPlaceButton extends StatelessWidget {
       partialPayment: checkoutController.isPartialPay ? 1 : 0, guestId: isGuestLogIn ? int.parse(Get.find<AuthController>().getGuestId()) : 0,
       isBuyNow: fromCart ? 0 : 1, guestEmail: isGuestLogIn ? finalAddress.email : null,
       extraPackagingAmount: extraPackagingAmount,
+      deliveryCharge: deliveryCharge,
     );
   }
 

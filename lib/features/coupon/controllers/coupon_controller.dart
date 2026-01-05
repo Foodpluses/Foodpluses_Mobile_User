@@ -21,6 +21,8 @@ class CouponController extends GetxController implements GetxService {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  
+  bool _isLoadingCouponList = false;
 
   bool _freeDelivery = false;
   bool get freeDelivery => _freeDelivery;
@@ -36,8 +38,18 @@ class CouponController extends GetxController implements GetxService {
 
   // Helpers for first-order coupons
   Future<void> ensureCouponListLoaded() async {
+    // Prevent multiple simultaneous calls
+    if(_isLoadingCouponList) {
+      return;
+    }
+    
     if(_couponList == null) {
-      await getCouponList();
+      _isLoadingCouponList = true;
+      try {
+        await getCouponList();
+      } finally {
+        _isLoadingCouponList = false;
+      }
     }
   }
 
@@ -59,14 +71,28 @@ class CouponController extends GetxController implements GetxService {
   }
 
   Future<void> getCouponList({int? restaurantId}) async {
-    if(Get.find<ProfileController>().userInfoModel == null){
-      await Get.find<ProfileController>().getUserInfo();
+    final profileController = Get.find<ProfileController>();
+    if(profileController.userInfoModel == null){
+      await profileController.getUserInfo();
     }
-    _couponList = await couponServiceInterface.getList(customerId: Get.find<ProfileController>().userInfoModel!.id, restaurantId: restaurantId);
-    // if(_couponList != null) {
-    //   _toolTipController = couponServiceInterface.generateToolTipControllerList(_couponList);
+    
+    // Check again after getUserInfo() - it might still be null
+    if(profileController.userInfoModel?.id == null) {
+      _couponList = null;
       update();
-    // }
+      return;
+    }
+    
+    try {
+      _couponList = await couponServiceInterface.getList(
+        customerId: profileController.userInfoModel!.id!, 
+        restaurantId: restaurantId
+      );
+    } catch (e) {
+      _couponList = null;
+    } finally {
+      update();
+    }
   }
 
   Future<void> getRestaurantCouponList({required int restaurantId}) async {

@@ -63,6 +63,7 @@ class AppConstants {
   static const String restaurantUri = '/api/v1/restaurants/get-restaurants';
   static const String popularRestaurantUri = '/api/v1/restaurants/popular';
   static const String latestRestaurantUri = '/api/v1/restaurants/latest';
+  static const String discountedRestaurantUri = '/api/v1/restaurants/discounted';
   static const String restaurantDetailsUri = '/api/v1/restaurants/details/';
   static const String basicCampaignUri = '/api/v1/campaigns/basic';
   static const String itemCampaignUri = '/api/v1/campaigns/item';

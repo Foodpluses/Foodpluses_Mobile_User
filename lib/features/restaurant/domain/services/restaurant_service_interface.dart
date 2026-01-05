@@ -16,6 +16,7 @@ abstract class RestaurantServiceInterface {
   Future<List<Restaurant>?> getOrderAgainRestaurantList({DataSourceEnum? source});
   Future<List<Restaurant>?> getRecentlyViewedRestaurantList(String type, {DataSourceEnum? source});
   Future<List<Restaurant>?> getPopularRestaurantList(String type, {DataSourceEnum? source});
+  Future<List<Restaurant>?> getDiscountedRestaurantList(String type, {DataSourceEnum? source});
   Future<List<Restaurant>?> getLatestRestaurantList(String type, {DataSourceEnum? source});
   Future<RecommendedProductModel?> getRestaurantRecommendedItemList(int? restaurantId);
   int setTopRated(int rated);

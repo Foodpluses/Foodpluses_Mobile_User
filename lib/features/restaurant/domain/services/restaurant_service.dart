@@ -70,6 +70,11 @@ class RestaurantService implements RestaurantServiceInterface {
   }
 
   @override
+  Future<List<Restaurant>?> getDiscountedRestaurantList(String type, {DataSourceEnum? source}) async {
+    return await restaurantRepositoryInterface.getRestaurantList(type: type, isDiscounted: true, source: source);
+  }
+
+  @override
   Future<List<Restaurant>?> getLatestRestaurantList(String type, {DataSourceEnum? source}) async {
     return await restaurantRepositoryInterface.getRestaurantList(type: type, isLatest: true, source: source);
   }

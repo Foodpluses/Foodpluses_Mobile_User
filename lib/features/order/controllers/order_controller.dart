@@ -357,6 +357,9 @@ class OrderController extends GetxController implements GetxService {
     if (reasons != null) {
       _orderCancelReasons = [];
       _orderCancelReasons!.addAll(reasons);
+    } else {
+      // If reasons are null, set to empty list to avoid null checks
+      _orderCancelReasons = [];
     }
     update();
   }

@@ -4,6 +4,7 @@ import 'package:stackfood_multivendor/common/widgets/custom_ink_well_widget.dart
 import 'package:stackfood_multivendor/features/favourite/controllers/favourite_controller.dart';
 import 'package:stackfood_multivendor/features/home/widgets/icon_with_text_row_widget.dart';
 import 'package:stackfood_multivendor/features/restaurant/controllers/restaurant_controller.dart';
+import 'package:stackfood_multivendor/features/splash/controllers/splash_controller.dart';
 import 'package:stackfood_multivendor/common/models/restaurant_model.dart';
 import 'package:stackfood_multivendor/helper/date_converter.dart';
 import 'package:stackfood_multivendor/helper/responsive_helper.dart';
@@ -35,7 +36,7 @@ class RestaurantsViewWidget extends StatelessWidget {
           crossAxisCount: ResponsiveHelper.isMobile(context) ? 1 : ResponsiveHelper.isTab(context) ? 3 : 4,
           mainAxisSpacing: Dimensions.paddingSizeLarge,
           crossAxisSpacing: Dimensions.paddingSizeLarge,
-          mainAxisExtent: 230,
+          mainAxisExtent: 140,
         ),
         padding: EdgeInsets.symmetric(horizontal: !ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeDefault : 0),
         itemBuilder: (context, index) {
@@ -59,7 +60,7 @@ class RestaurantsViewWidget extends StatelessWidget {
           crossAxisCount: ResponsiveHelper.isMobile(context) ? 1 : ResponsiveHelper.isTab(context) ? 3 : 4,
           mainAxisSpacing: Dimensions.paddingSizeLarge,
           crossAxisSpacing: Dimensions.paddingSizeLarge,
-          mainAxisExtent: 230,
+          mainAxisExtent: 140,
         ),
         padding: EdgeInsets.symmetric(horizontal: !ResponsiveHelper.isDesktop(context) ? Dimensions.paddingSizeLarge : 0),
         itemBuilder: (context, index) {
@@ -79,170 +80,112 @@ class RestaurantView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isAvailable = restaurant.open == 1 && restaurant.active!;
-    String characteristics = '';
-    if(restaurant.characteristics != null) {
-      for (var v in restaurant.characteristics!) {
-        characteristics = '$characteristics${characteristics.isNotEmpty ? ', ' : ''}$v';
-      }
-    }
+    // Check business shutdown status
+    bool isBusinessShutdown = Get.find<SplashController>().configModel?.businessShutdown ?? false;
+    // Check restaurant availability (open status, active status, and business shutdown)
+    bool isAvailable = !isBusinessShutdown && restaurant.open == 1 && restaurant.active!;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: isSelected ? Border.all(color: Theme.of(context).primaryColor, width: 1) : null,
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        boxShadow: [BoxShadow(color: Get.isDarkMode? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 1))],
+        border: Border.all(color: Theme.of(context).disabledColor.withValues(alpha: 0.2)),
+        boxShadow: [BoxShadow(color: Get.isDarkMode? Colors.black.withValues(alpha: 0.15) : Colors.black.withOpacity(0.05), spreadRadius: 0, blurRadius: 10, offset: const Offset(0, 2))],
       ),
       child: CustomInkWellWidget(
         onTap: onTap ?? () {
           if(restaurant.restaurantStatus == 1){
             Get.toNamed(RouteHelper.getRestaurantRoute(restaurant.id), arguments: RestaurantScreen(restaurant: restaurant));
-          }else if(restaurant.restaurantStatus == 0){
+          }else {
             showCustomSnackBar('restaurant_is_not_available'.tr);
           }
         },
         radius: Dimensions.radiusDefault,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
-                child: CustomImageWidget(
-                  image: '${restaurant.coverPhotoFullUrl}',
-                  fit: BoxFit.cover, height: 110, width: double.infinity,
-                  isRestaurant: true,
-                ),
-              ),
-            ),
-
-            !isAvailable ? Positioned(child: Container(
-              height: 110, width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
-              ),
-            )) : const SizedBox(),
-
-            !isAvailable ? Positioned(top: 10, left: 10, child: Container(
-              decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(Dimensions.radiusLarge)
-              ),
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.fontSizeExtraLarge, vertical: Dimensions.paddingSizeExtraSmall),
-              child: Row(children: [
-                Icon(Icons.access_time, size: 12, color: Theme.of(context).cardColor),
-                const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
-                Text(
-                  restaurant.restaurantOpeningTime == 'closed' ? 'closed_now'.tr : '${'closed_now'.tr} ${!restaurant.active! ? '' : '(${'open_at'.tr} ${DateConverter.convertRestaurantOpenTime(restaurant.restaurantOpeningTime!)})'}',
-                  style: robotoMedium.copyWith(color: Theme.of(context).cardColor, fontSize: Dimensions.fontSizeSmall),
-                ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(children: [
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Stack(children: [
+                CustomImageWidget(image: '${restaurant.coverPhotoFullUrl}', fit: BoxFit.cover, height: 108, width: 108, isRestaurant: true),
+                if(!isAvailable)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.black.withOpacity(0.4),
+                      ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.access_time, size: 12, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Text(
+                                'closed_now'.tr,
+                                style: robotoMedium.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ]),
-            )) : const SizedBox(),
-
-            Positioned(
-              top: 70, left: 10, right: 0,
-              child: Column(
-                children: [
-                  Container(
-                    height: 70, width: 70,
-                    decoration:  BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                      border: Border.all(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), width: 2.5),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(3.5),
-                      child: CustomImageWidget(
-                        image: '${restaurant.logoFullUrl}',
-                        fit: BoxFit.cover, height: 70, width: 70,
-                        isRestaurant: true,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-
-                  Text(
-                    restaurant.name ?? '',
-                    style: robotoBold,
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: characteristics != '' ? Dimensions.paddingSizeExtraSmall : Dimensions.paddingSizeSmall),
-
-                  characteristics != '' ? SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: Text(
-                      characteristics,
-                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).hintColor),
-                      maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
-                    ),
-                  ) : const SizedBox(),
-                  SizedBox(height: characteristics != '' ? Dimensions.paddingSizeExtraSmall : 0),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-
-                      restaurant.ratingCount! > 0 ? IconWithTextRowWidget(
-                        icon: Icons.star, text: restaurant.avgRating!.toStringAsFixed(1),
-                        style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
-                      ) : const SizedBox(),
-                      SizedBox(width: restaurant.ratingCount! > 0 ? Dimensions.paddingSizeDefault : 0),
-
-                      restaurant.freeDelivery! ? ImageWithTextRowWidget(
-                        widget: Image.asset(Images.deliveryIcon, height: 20, width: 20),
-                        text: 'free'.tr,
-                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
-                      ) : const SizedBox(),
-                      SizedBox(width: restaurant.freeDelivery! ? Dimensions.paddingSizeDefault : 0),
-
-                      IconWithTextRowWidget(
-                        icon: Icons.access_time_outlined, text: '${restaurant.deliveryTime}',
-                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
-                      ),
-
-                    ],
-                  ),
-                ],
-              ),
             ),
-
-            Positioned(
-              top: Dimensions.paddingSizeSmall, right: Dimensions.paddingSizeSmall,
-              child: GetBuilder<FavouriteController>(builder: (favouriteController) {
-                bool isWished = favouriteController.wishRestIdList.contains(restaurant.id);
-                return CustomFavouriteWidget(
-                  isWished: isWished,
-                  isRestaurant: true,
-                  restaurant: restaurant,
-                );
-              }),
-            ),
-
-            Positioned(
-              top: 88, right: 15,
-              child: Container(
-                height: 23,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(Dimensions.radiusDefault), topRight: Radius.circular(Dimensions.radiusDefault)),
-                  color: Theme.of(context).cardColor,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                child: Center(
-                  child: Text('${Get.find<RestaurantController>().getRestaurantDistance(
-                    LatLng(double.parse(restaurant.latitude!), double.parse(restaurant.longitude!)),
-                  ).toStringAsFixed(2)} ${'km'.tr}',
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeExtraSmall, color: Theme.of(context).primaryColor)),
-                ),
-              ),
-            ),
-          ],
+            const SizedBox(width: 10),
+            // Content
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text(restaurant.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoBold.copyWith(fontSize: 14))),
+                GetBuilder<FavouriteController>(builder: (favouriteController) {
+                  bool isWished = favouriteController.wishRestIdList.contains(restaurant.id);
+                  return Icon(isWished ? Icons.favorite : Icons.favorite_border, size: 18, color: isWished ? Colors.orange : Colors.grey.shade500);
+                }),
+              ]),
+              const SizedBox(height: 6),
+              Text(restaurant.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoRegular.copyWith(fontSize: 12, color: Colors.grey.shade600)),
+              const Spacer(),
+              Wrap(spacing: 6, runSpacing: -6, children: [
+                if(restaurant.ratingCount! > 0) _Pill(icon: Icons.star, label: restaurant.avgRating!.toStringAsFixed(1)),
+                _Pill(icon: Icons.access_time_outlined, label: '${restaurant.deliveryTime}'),
+                if(restaurant.freeDelivery == true) _Pill(icon: Icons.local_shipping, label: 'free'.tr),
+                _Pill(icon: Icons.place, label: '${Get.find<RestaurantController>().getRestaurantDistance(LatLng(double.parse(restaurant.latitude!), double.parse(restaurant.longitude!))).toStringAsFixed(1)} km'),
+              ]),
+            ])),
+          ]),
         ),
       ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final IconData icon; final String label;
+  const _Pill({required this.icon, required this.label});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 10, color: Colors.grey.shade700),
+        const SizedBox(width: 3),
+        Text(label, style: robotoRegular.copyWith(fontSize: 10, color: Colors.grey.shade700)),
+      ]),
     );
   }
 }

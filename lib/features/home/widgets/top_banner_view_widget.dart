@@ -21,11 +21,46 @@ class TopBannerViewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<HomeController>(builder: (homeController) {
-      return (homeController.bannerImageList != null && homeController.bannerImageList!.isEmpty) ? const SizedBox() : Container(
+      // Debug logging
+      debugPrint('=== TOP BANNER DEBUG ===');
+      debugPrint('topBannerImageList is null: ${homeController.topBannerImageList == null}');
+      debugPrint('topBannerImageList length: ${homeController.topBannerImageList?.length ?? 'null'}');
+      debugPrint('topBannerImageList: ${homeController.topBannerImageList}');
+      debugPrint('topBannerDataList: ${homeController.topBannerDataList?.length ?? 'null'}');
+      
+      // Show shimmer while loading, hide only if explicitly empty after load
+      if (homeController.topBannerImageList == null) {
+        debugPrint('TOP BANNER: Showing shimmer (loading state)');
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+            child: Shimmer(
+              child: Container(
+                height: ResponsiveHelper.isMobile(context) ? 120 : 160,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                  color: Theme.of(context).shadowColor,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      
+      // Hide only if explicitly empty
+      if (homeController.topBannerImageList!.isEmpty) {
+        debugPrint('TOP BANNER: Hiding (empty list)');
+        return const SizedBox();
+      }
+      
+      debugPrint('TOP BANNER: Showing carousel with ${homeController.topBannerImageList!.length} banners');
+      
+      return Container(
         width: MediaQuery.of(context).size.width,
         height: ResponsiveHelper.isMobile(context) ? 70 : 160,
         margin: EdgeInsets.only(bottom: ResponsiveHelper.isMobile(context) ? 12 : 16),
-        child: homeController.bannerImageList != null ? CarouselSlider.builder(
+        child: homeController.topBannerImageList != null ? CarouselSlider.builder(
           options: CarouselOptions(
             height: ResponsiveHelper.isMobile(context) ? 120 : 160,
             autoPlay: true,
@@ -37,26 +72,26 @@ class TopBannerViewWidget extends StatelessWidget {
               // For now, we can use the same controller
             },
           ),
-          itemCount: homeController.bannerImageList!.isEmpty ? 1 : homeController.bannerImageList!.length,
+          itemCount: homeController.topBannerImageList!.isEmpty ? 1 : homeController.topBannerImageList!.length,
           itemBuilder: (context, index, _) {
             return InkWell(
               onTap: () {
-                if(homeController.bannerDataList![index] is Product) {
-                  Product? product = homeController.bannerDataList![index];
+                if(homeController.topBannerDataList![index] is Product) {
+                  Product? product = homeController.topBannerDataList![index];
                   ResponsiveHelper.isMobile(context) ? showModalBottomSheet(
                     context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
                     builder: (con) => ProductBottomSheetWidget(product: product),
                   ) : showDialog(context: context, builder: (con) => Dialog(
                       child: ProductBottomSheetWidget(product: product)),
                   );
-                }else if(homeController.bannerDataList![index] is Restaurant) {
-                  Restaurant restaurant = homeController.bannerDataList![index];
+                }else if(homeController.topBannerDataList![index] is Restaurant) {
+                  Restaurant restaurant = homeController.topBannerDataList![index];
                   Get.toNamed(
                     RouteHelper.getRestaurantRoute(restaurant.id),
                     arguments: RestaurantScreen(restaurant: restaurant),
                   );
-                }else if(homeController.bannerDataList![index] is BasicCampaignModel) {
-                  BasicCampaignModel campaign = homeController.bannerDataList![index];
+                }else if(homeController.topBannerDataList![index] is BasicCampaignModel) {
+                  BasicCampaignModel campaign = homeController.topBannerDataList![index];
                   Get.toNamed(RouteHelper.getBasicCampaignRoute(campaign));
                 }
               },
@@ -64,7 +99,7 @@ class TopBannerViewWidget extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.06),
@@ -74,12 +109,12 @@ class TopBannerViewWidget extends StatelessWidget {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   child: SizedBox(
                     width: double.infinity,
                     height: ResponsiveHelper.isMobile(context) ? 120 : 160,
                     child: CustomImageWidget(
-                      image: '${homeController.bannerImageList![index]}',
+                      image: '${homeController.topBannerImageList![index]}',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -90,12 +125,12 @@ class TopBannerViewWidget extends StatelessWidget {
         ) : Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
             child: Shimmer(
               child: Container(
                 height: ResponsiveHelper.isMobile(context) ? 120 : 160,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   color: Theme.of(context).shadowColor,
                 ),
               ),
