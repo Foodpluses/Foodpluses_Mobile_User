@@ -528,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade600,
+                                  color: const Color(0xFF6BBD07),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -612,75 +612,75 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         // Popular Restaurants - cleaner, smaller cards
                         _configModel?.popularRestaurant == 1 ? const PopularRestaurantsViewWidget() : const SizedBox(),
                         // Enhanced divider / promo strip
-                        const SizedBox(height: 4),
-                        Container(
-                          height: 56,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 4),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            gradient: LinearGradient(
-                              colors: [Colors.orange.shade50, Colors.white],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            border: Border.all(color: Colors.orange.shade100),
-                          ),
-                          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                            // Badge
-                            Container(
-                              height: 28, width: 28,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(colors: [Colors.orange.shade600, Colors.orange.shade400]),
-                                boxShadow: [BoxShadow(color: Colors.orange.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 2))],
-                              ),
-                              child: const Icon(Icons.local_fire_department, color: Colors.white, size: 16),
-                            ),
-                            const SizedBox(width: 10),
-                            // Title + tags
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
-                                Text('Handpicked deals near you', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoMedium.copyWith(fontSize: 10, height: 1.0, color: Colors.orange.shade900)),
-                                const SizedBox(height: 3),
-                                SizedBox(
-                                  height: 20,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Row(children: [
-                                      _DealChip(label: 'Limited-time', icon: Icons.timer, color: Colors.orange.shade700),
-                                      _DealChip(label: 'Free delivery', icon: Icons.local_shipping, color: Colors.green.shade700),
-                                      _DealChip(label: 'Under ₦1000', icon: Icons.payments, color: Colors.indigo.shade700),
-                                      _DealChip(label: 'Buy 1 Get 1', icon: Icons.redeem, color: Colors.purple.shade700),
-                                      _DealChip(label: '10km radius', icon: Icons.radar, color: Colors.teal.shade700),
-                                    ]),
-                                  ),
-                                ),
-                              ]),
-                            ),
-                            const SizedBox(width: 8),
-                            // CTA
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: FittedBox(
-                                child: InkWell(
-                                  onTap: () => Get.toNamed(RouteHelper.getAllRestaurantRoute('discounted')),
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.shade600,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [BoxShadow(color: Colors.orange.withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 2))],
-                                    ),
-                                    child: Text('View all', style: robotoMedium.copyWith(fontSize: 11, color: Colors.white)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ]),
-                        ),
+                        // const SizedBox(height: 4),
+                        // Container(
+                        //   height: 56,
+                        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        //   margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 4),
+                        //   decoration: BoxDecoration(
+                        //     borderRadius: BorderRadius.circular(12),
+                        //     gradient: LinearGradient(
+                        //       colors: [const Color(0xFFFF0000).withOpacity(0.1), Colors.white],
+                        //       begin: Alignment.topLeft,
+                        //       end: Alignment.bottomRight,
+                        //     ),
+                        //     border: Border.all(color: const Color(0xFFFF0000).withOpacity(0.2)),
+                        //   ),
+                        //   child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                        //     // Badge
+                        //     Container(
+                        //       height: 28, width: 28,
+                        //       decoration: BoxDecoration(
+                        //         shape: BoxShape.circle,
+                        //         gradient: LinearGradient(colors: [const Color(0xFFFF0000), const Color(0xFFFF3333)]),
+                        //         boxShadow: [BoxShadow(color: const Color(0xFFFF0000).withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 2))],
+                        //       ),
+                        //       child: const Icon(Icons.local_fire_department, color: Colors.white, size: 16),
+                        //     ),
+                        //     const SizedBox(width: 10),
+                        //     // Title + tags
+                        //     Expanded(
+                        //       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+                        //         Text('Handpicked deals near you', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoMedium.copyWith(fontSize: 10, height: 1.0, color: const Color(0xFFFF0000))),
+                        //         const SizedBox(height: 3),
+                        //         SizedBox(
+                        //           height: 20,
+                        //           child: SingleChildScrollView(
+                        //             scrollDirection: Axis.horizontal,
+                        //             physics: const BouncingScrollPhysics(),
+                        //             child: Row(children: [
+                        //               _DealChip(label: 'Limited-time', icon: Icons.timer, color: Colors.orange.shade700),
+                        //               _DealChip(label: 'Free delivery', icon: Icons.local_shipping, color: Colors.green.shade700),
+                        //               _DealChip(label: 'Under ₦1000', icon: Icons.payments, color: Colors.indigo.shade700),
+                        //               _DealChip(label: 'Buy 1 Get 1', icon: Icons.redeem, color: Colors.purple.shade700),
+                        //               _DealChip(label: '10km radius', icon: Icons.radar, color: Colors.teal.shade700),
+                        //             ]),
+                        //           ),
+                        //         ),
+                        //       ]),
+                        //     ),
+                        //     const SizedBox(width: 8),
+                        //     // CTA
+                        //     Align(
+                        //       alignment: Alignment.centerRight,
+                        //       child: FittedBox(
+                        //         child: InkWell(
+                        //           onTap: () => Get.toNamed(RouteHelper.getAllRestaurantRoute('discounted')),
+                        //           borderRadius: BorderRadius.circular(8),
+                        //           child: Container(
+                        //             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        //             decoration: BoxDecoration(
+                        //               color: const Color(0xFFFF0000),
+                        //               borderRadius: BorderRadius.circular(8),
+                        //               boxShadow: [BoxShadow(color: const Color(0xFFFF0000).withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 2))],
+                        //             ),
+                        //             child: Text('View all', style: robotoMedium.copyWith(fontSize: 11, color: Colors.white)),
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ]),
+                        // ),
                         // Discounts section
                         const DiscountRestaurantsViewWidget(),
                       ]),

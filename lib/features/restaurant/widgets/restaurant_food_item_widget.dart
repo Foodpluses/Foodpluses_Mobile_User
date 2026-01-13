@@ -151,14 +151,14 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                           Icon(
                             Icons.local_offer,
                             size: 14,
-                            color: Theme.of(context).primaryColor,
+                            color: const Color(0xFFCF0F14),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             PriceConverter.convertPrice(product.price, discount: discount, discountType: discountType),
                             style: robotoMedium.copyWith(
                               fontSize: 15,
-                              color: Theme.of(context).primaryColor,
+                              color: const Color(0xFFCF0F14),
                               fontWeight: FontWeight.w700, 
                             ),
                           ),
@@ -211,11 +211,11 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                           width: 100,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
+                              color: const Color(0xFF6BBD07),
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                  color: const Color(0xFF6BBD07).withOpacity(0.3),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                   spreadRadius: 0,
@@ -242,7 +242,7 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                                     child: Icon(
                                       Icons.remove,
                                       size: 16,
-                                      color: Theme.of(context).primaryColor,
+                                      color: const Color(0xFF6BBD07),
                                     ),
                                   ),
                                 ),
@@ -267,7 +267,7 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                                     child: Icon(
                                       Icons.add,
                                       size: 16,
-                                      color: Theme.of(context).primaryColor,
+                                      color: const Color(0xFF6BBD07),
                                     ),
                                   ),
                                 ),
@@ -281,11 +281,15 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                             child: Container(
                               width: 100,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: Colors.white,
+                                border: Border.all(
+                                  color: const Color(0xFF6BBD07),
+                                  width: 1.5,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                    color: const Color(0xFF6BBD07).withOpacity(0.2),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                     spreadRadius: 0,
@@ -298,7 +302,7 @@ class RestaurantFoodItemWidget extends StatelessWidget {
                                   'Add',
                                   style: robotoMedium.copyWith(
                                     fontSize: 13,
-                                    color: Colors.white,
+                                    color: const Color(0xFF6BBD07),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

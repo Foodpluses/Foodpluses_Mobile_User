@@ -31,7 +31,7 @@ class BottomNavItem extends StatelessWidget {
                 children: [
                   Icon(
                     iconData, 
-                    color: isSelected ? Colors.orange : Colors.grey.shade700, 
+                    color: isSelected ? const Color(0xFFCF0F14) : Colors.grey.shade700, 
                     size: 24,
                   ),
                   if (badge != null) badge!,
@@ -41,7 +41,7 @@ class BottomNavItem extends StatelessWidget {
               Text(
                 label,
                 style: robotoMedium.copyWith(
-                  color: isSelected ? Colors.orange : Colors.grey.shade700,
+                  color: isSelected ? const Color(0xFFCF0F14) : Colors.grey.shade700,
                   fontSize: 11,
                 ),
                 maxLines: 1,

@@ -45,12 +45,12 @@ class BottomCartWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: const Color(0xFFCF0F14).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.shopping_cart_outlined,
-                      color: Theme.of(context).primaryColor,
+                      color: const Color(0xFFCF0F14),
                       size: 24,
                     ),
                   ),
@@ -74,7 +74,7 @@ class BottomCartWidget extends StatelessWidget {
                           PriceConverter.convertPrice(cartController.calculationCart()),
                           style: robotoMedium.copyWith(
                             fontSize: 18,
-                            color: Theme.of(context).primaryColor,
+                            color: const Color(0xFFCF0F14),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -85,18 +85,11 @@ class BottomCartWidget extends StatelessWidget {
                   // View Cart button
                   Container(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).primaryColor,
-                          Theme.of(context).primaryColor.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: const Color(0xFF6BBD07),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).primaryColor.withOpacity(0.3),
+                          color: const Color(0xFF6BBD07).withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -162,7 +155,7 @@ class BottomCartWidget extends StatelessWidget {
             children: [
               Icon(
                 Icons.login,
-                color: Colors.orange,
+                color: const Color(0xFFCF0F14),
                 size: 24,
               ),
               const SizedBox(width: 8),
@@ -208,7 +201,7 @@ class BottomCartWidget extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: const Color(0xFF6BBD07),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

@@ -187,7 +187,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.access_time, size: 20, color: Theme.of(context).primaryColor),
+                                  Icon(Icons.access_time, size: 20, color: const Color(0xFFCF0F14)),
                                   const SizedBox(height: 4),
                                   Text(
                                     '18 - 28 min',
@@ -221,7 +221,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.local_shipping, size: 20, color: Theme.of(context).primaryColor),
+                                  Icon(Icons.local_shipping, size: 20, color: const Color(0xFF6BBD07)),
                                   const SizedBox(height: 4),
                                   Text(
                                     PriceConverter.convertPrice(Get.find<RestaurantController>().calculateDeliveryFee(restaurant!)),
@@ -255,7 +255,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.flash_on, size: 20, color: Theme.of(context).primaryColor),
+                                  Icon(Icons.flash_on, size: 20, color: const Color(0xFFCF0F14)),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Instant',
@@ -305,7 +305,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
                                 margin: const EdgeInsets.only(right: 6),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  color: index == restController.categoryIndex ? Theme.of(context).primaryColor : Colors.transparent,
+                                  color: index == restController.categoryIndex ? const Color(0xFFCF0F14) : Colors.transparent,
                                 ),
                                 child: Center(
                                   child: Text(
